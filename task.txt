@@ -14,7 +14,7 @@
 создай 2 user role (dispatcher, admin)
 
 регистрироваться нельзя, можно логиниться по логину и паролю
-после логина бэк возвращает токен и roleName. 
+после логина бэк возвращает токен и roleName.
 
 действия доступные бех токена всем пользователям даже незалогининым: получение списка рейсов с их бригадой
 
@@ -30,20 +30,158 @@ index.js
 
 const express = require('express');
 const cors = require('cors');
-const { Sequelize, DataTypes, Op } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const sequelize = new Sequelize('test_10_db', 'root', '', {
-    host: 'localhost',
+const sequelize = new Sequelize('task_10_db', 'root', '', {
     host: '127.0.0.1',
     port: 3307,
     dialect: 'mysql',
+    logging: false
 });
 
+const User = sequelize.define('User', {
+    login: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    role: { type: DataTypes.STRING, allowNull: false }
+});
+
+const Flight = sequelize.define('Flight', {
+    flightNumber: { type: DataTypes.STRING, allowNull: false },
+    departurePlace: { type: DataTypes.STRING, allowNull: false },
+    arrivalPlace: { type: DataTypes.STRING, allowNull: false },
+    departureTime: { type: DataTypes.DATE, allowNull: false },
+    arrivalTime: { type: DataTypes.DATE, allowNull: false }
+});
+
+const CrewMember = sequelize.define('CrewMember', {
+    firstName: { type: DataTypes.STRING, allowNull: false },
+    lastName: { type: DataTypes.STRING, allowNull: false },
+    middleName: { type: DataTypes.STRING, allowNull: true },
+    profession: { type: DataTypes.STRING, allowNull: false },
+    phone: { type: DataTypes.STRING, allowNull: true }
+});
+
+Flight.hasMany(CrewMember);
+CrewMember.belongsTo(Flight);
+
+const auth = (requiredRole) => async (req, res, next) => {
+    const token = req.headers.authorization;
+    if (!token) return res.status(401).json({ message: 'No token' });
+
+    const user = await User.findByPk(token);
+    if (!user) return res.status(401).json({ message: 'Invalid token' });
+
+    if (requiredRole && user.role !== requiredRole) {
+        return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    req.user = user;
+    next();
+};
+
+app.post('/login', async (req, res) => {
+    const { login, password } = req.body;
+    const user = await User.findOne({ where: { login, password } });
+    
+    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    
+    res.json({ token: user.id, roleName: user.role });
+});
+
+app.get('/flights', async (req, res) => {
+    const flights = await Flight.findAll({ include: CrewMember });
+    res.json(flights);
+});
+
+app.post('/flights', auth('admin'), async (req, res) => {
+    try {
+        const flight = await Flight.create(req.body);
+        res.json(flight);
+    } catch (e) {
+        res.status(500).json(e);
+    }
+});
+
+app.put('/flights/:id', auth('admin'), async (req, res) => {
+    try {
+        await Flight.update(req.body, { where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json(e);
+    }
+});
+
+app.delete('/flights/:id', auth('admin'), async (req, res) => {
+    try {
+        await Flight.destroy({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json(e);
+    }
+});
+
+app.post('/crew', auth('dispatcher'), async (req, res) => {
+    try {
+        const { flightId, ...data } = req.body;
+        const member = await CrewMember.create({ ...data, FlightId: flightId });
+        res.json(member);
+    } catch (e) {
+        res.status(500).json(e);
+    }
+});
+
+app.put('/crew/:id', auth('dispatcher'), async (req, res) => {
+    try {
+        await CrewMember.update(req.body, { where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json(e);
+    }
+});
+
+app.delete('/crew/:id', auth('dispatcher'), async (req, res) => {
+    try {
+        await CrewMember.destroy({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json(e);
+    }
+});
+
+const start = async () => {
+    try {
+        await sequelize.sync({ force: true });
+        
+        await User.bulkCreate([
+            { login: 'admin', password: '123', role: 'admin' },
+            { login: 'disp', password: '123', role: 'dispatcher' }
+        ]);
+
+        const flight1 = await Flight.create({
+            flightNumber: 'SU-100',
+            departurePlace: 'Moscow',
+            arrivalPlace: 'Sochi',
+            departureTime: new Date(),
+            arrivalTime: new Date(new Date().getTime() + 4 * 60 * 60 * 1000)
+        });
+
+        await CrewMember.bulkCreate([
+            { firstName: 'Ivan', lastName: 'Ivanov', profession: 'Pilot', FlightId: flight1.id },
+            { firstName: 'Maria', lastName: 'Petrova', profession: 'Stewardess', FlightId: flight1.id }
+        ]);
+
+        app.listen(3000, () => console.log('Server started on port 3000'));
+    } catch (e) {
+        console.log(e);
+    }
+};
+
+start();
 ---
 
 package.json
@@ -74,4 +212,344 @@ package.json
 
 
 
+выше я описал как работает мой бэк. сделай фронт который полностью покрывает возможности бэка. непиши комментарии. не используй стейт менеджеры и useContext, хрни все данные в корне App.js и прокидывай другим комопнентам. пиши максимально тупо и просто. сохраняй при первом входе в аккаунт данные в ocalStorage.
 
+вот шаблон фронта
+
+>>!>FILEPATH: ./tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+export default {
+    content: [
+        "./index.html",
+        "./src/**/*.{js,ts,jsx,tsx}"
+    ],
+    theme: {
+        extend: {
+            colors: {
+                "theme": "#1f2937",
+                "theme-hover": "#374151",
+                "accent": "#f75b00",
+                "accent-hover": "#ff6709",
+                "gray-light": "#e4e4e7",
+                "gray-medium": "#71717a",
+
+            }
+        },
+    },
+    plugins: [],
+};
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./eslint.config.js
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./package.json
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.68.0",
+    "react-router-dom": "^7.10.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18",
+    "vite": "^7.2.4"
+  }
+}
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./index.html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/js.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ТЗ_JS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./vite.config.js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./postcss.config.js
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/reset.css
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+body, h1, h2, h3, h4, p,
+figure, blockquote, dl, dd {
+  margin: 0;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+body {
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4,
+button, input, label {
+  line-height: 1.1;
+}
+
+h1, h2,
+h3, h4 {
+  text-wrap: balance;
+}
+
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+  color: currentColor;
+}
+
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+input, button,
+textarea, select {
+  font: inherit;
+}
+
+textarea:not([rows]) {
+  min-height: 10em;
+}
+
+:target {
+  scroll-margin-block: 5ex;
+}
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/App.css
+#root {
+    margin: 0 auto;
+    text-align: center;
+    max-width: screen;
+}
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/App.jsx
+import { Routes, Route } from "react-router-dom";
+import ClientsPage from "./pages/clients/ClientsPage.jsx";
+import ServicesPage from "./pages/services/ServicesPage";
+import LinkCustom from "./components/ui/LinkCustom";
+
+function App() {
+
+    return (
+        <div className="p-3">
+            <nav className="bg-theme h-14 rounded-md flex flex-row items-center justify-center">
+                <LinkCustom to="/">Клиенты</LinkCustom>
+                <LinkCustom to="/services">Услуги</LinkCustom>
+            </nav>
+
+            <Routes>
+                <Route path="/" element={<ClientsPage/>} />
+                <Route path="/services" element={<ServicesPage/>} />
+            </Routes>
+        </div>
+    );
+}
+
+export default App;
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/main.jsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import "./index.css";
+import App from "./App.jsx";
+
+createRoot(document.getElementById("root")).render(
+    <StrictMode>
+        <BrowserRouter>
+            <App />
+        </BrowserRouter>
+    </StrictMode>
+);
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/index.css
+@import url("./reset.css");
+@import url("./App.css");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/pages/services/ServicesPage.jsx
+import React from 'react'
+
+export default function ServicesPage() {
+  return (
+    <div>
+      ServicesPage
+    </div>
+  )
+}
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/pages/clients/ClientsPage.jsx
+import React from 'react'
+
+export default function ClientsPage() {
+  return (
+    <div>
+      ClientsPage
+    </div>
+  )
+}
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/components/modals/ArertModal.jsx
+import Button from "../ui/Button";
+import X from "../ui/X";
+
+export default function AlertModal({ isVisible, setIsVisible, alertText }) {
+
+    if (!isVisible) return null;
+
+    return (
+        <div
+            onClick={() => {
+                setIsVisible(false);
+            }}
+            className="fixed transition inset-0 flex backdrop-blur-sm items-center justify-center bg-gray-medium/50 z-50"
+        >
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white p-6 rounded-lg shadow-xl relative pt-9 flex flex-col"
+            >
+                <X
+                    className={"absolute top-2 right-2"}
+                    onClick={() => {
+                        setIsVisible(false);
+                    }}
+                />
+
+                <h3 className="text-xl font-semibold mb-6 text-center mt-6">{alertText}</h3>
+
+                <Button
+                    className="mt-2"
+                    onClick={() => { setIsVisible(false); }}
+                >
+                    Закрыть
+                </Button>
+            </div>
+        </div>
+    );
+}
+
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/api/axiosConfig.js
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:5000',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export default api
+<!<ENDOFFILE!<<
+>>!>FILEPATH: ./src/utils/formatters.js
+export const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleDateString('ru-RU');
+};
+
+<!<ENDOFFILE!<<
+
+
+
+
+не пиши код с использоавнием: >>!>FILEPATH:  !<ENDOFFILE!<<
+просто пиши название файла и код чтобы я его скопиролвал

@@ -134,15 +134,15 @@ const start = async () => {
 
         const flight1 = await Flight.create({
             flightNumber: 'SU-100',
-            departurePlace: 'Moscow',
-            arrivalPlace: 'Sochi',
+            departurePlace: 'Минск',
+            arrivalPlace: 'Москва',
             departureTime: new Date(),
             arrivalTime: new Date(new Date().getTime() + 4 * 60 * 60 * 1000)
         });
 
         await CrewMember.bulkCreate([
-            { firstName: 'Ivan', lastName: 'Ivanov', profession: 'Pilot', FlightId: flight1.id },
-            { firstName: 'Maria', lastName: 'Petrova', profession: 'Stewardess', FlightId: flight1.id }
+            { firstName: 'Иван', lastName: 'Иванов', profession: 'Пилот', FlightId: flight1.id },
+            { firstName: 'Мария', lastName: 'Сидорова', profession: 'Cтюардесса', FlightId: flight1.id }
         ]);
 
         app.listen(3000, () => console.log('Server started on port 3000'));
