@@ -1,9 +1,29 @@
-# test_task_js
+запуск прокта:
 
-How to run Backend
-open backend folder in terminal and run
+1) запустить apache и SQL в XAMPP
+база данных будет находитcя по адресу http://localhost/phpmyadmin/
+логин: root
+пароля нет
+
+при первом запуске надо создать базу данных с названием 
+`task_10_db`
+---
+
+2) запуск бэкенда
+
+чтобы первый раз запустить бэкенд надо открыть терминал в папке backend и написать 
+`npm install`
 `npm run dev`
 
-How to run Frontend
-open frontend folder in terminal and run
+в последующие разы достаточно писать
 `npm run dev`
+---
+
+3) запуск фронтенда
+
+чтобы первый раз запустить фронтенд надо открыть терминал в папке frontend и написать 
+`npm install`
+`npm run dev`
+в последующие разы достаточно писать 
+`npm run dev`
+---
