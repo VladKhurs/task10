@@ -7,6 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Подключение к БД (убедитесь, что настройки host/port/user/password верные для вашего ПК)
 const sequelize = new Sequelize('task_10_db', 'root', '', {
     host: '127.0.0.1',
     port: 3307,
@@ -49,7 +50,7 @@ const auth = (requiredRole) => async (req, res, next) => {
     if (requiredRole && user.role !== requiredRole) {
         return res.status(403).json({ message: 'Access denied' });
     }
-    
+
     req.user = user;
     next();
 };
@@ -57,9 +58,9 @@ const auth = (requiredRole) => async (req, res, next) => {
 app.post('/login', async (req, res) => {
     const { login, password } = req.body;
     const user = await User.findOne({ where: { login, password } });
-    
+
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
-    
+
     res.json({ token: user.id, roleName: user.role });
 });
 
@@ -126,24 +127,71 @@ app.delete('/crew/:id', auth('dispatcher'), async (req, res) => {
 const start = async () => {
     try {
         await sequelize.sync({ force: true });
-        
+
         await User.bulkCreate([
             { login: 'admin', password: '123', role: 'admin' },
             { login: 'disp', password: '123', role: 'dispatcher' }
         ]);
 
-        const flight1 = await Flight.create({
-            flightNumber: 'SU-100',
-            departurePlace: 'Минск',
-            arrivalPlace: 'Москва',
-            departureTime: new Date(),
-            arrivalTime: new Date(new Date().getTime() + 4 * 60 * 60 * 1000)
-        });
+        console.log('Users created.');
 
-        await CrewMember.bulkCreate([
-            { firstName: 'Иван', lastName: 'Иванов', profession: 'Пилот', FlightId: flight1.id },
-            { firstName: 'Мария', lastName: 'Сидорова', profession: 'Cтюардесса', FlightId: flight1.id }
-        ]);
+        const flightsData = [
+            { number: 'B2-975', dest: 'Москва', hours: 1.5 },
+            { number: 'B2-717', dest: 'Дубай', hours: 6 },
+            { number: 'B2-783', dest: 'Стамбул', hours: 3.5 },
+            { number: 'B2-735', dest: 'Тбилиси', hours: 3 }
+        ];
+
+        const pilots = ['Александр Глебов', 'Дмитрий Ковалев', 'Сергей Новик', 'Игорь Гончаров', 'Павел Жук', 'Виктор Мороз', 'Антон Волков', 'Валерий Зайцев'];
+        const navs = ['Олег Петров', 'Максим Сидоров', 'Евгений Кравец', 'Роман Василевский'];
+        const radios = ['Андрей Сокол', 'Владимир Попов', 'Денис Макаров', 'Кирилл Белов'];
+        const stews = ['Елена Иванова', 'Мария Смирнова', 'Ольга Кузнецова', 'Татьяна Козлова', 'Наталья Орлова', 'Светлана Кравченко', 'Анна Борисевич', 'Юлия Савицкая'];
+
+        let pilotIdx = 0;
+        let navIdx = 0;
+        let radioIdx = 0;
+        let stewIdx = 0;
+
+        for (const fData of flightsData) {
+            const departure = new Date();
+            departure.setHours(departure.getHours() + flightsData.indexOf(fData) * 2);
+
+            const arrival = new Date(departure.getTime() + fData.hours * 60 * 60 * 1000);
+
+            const flight = await Flight.create({
+                flightNumber: fData.number,
+                departurePlace: 'Минск',
+                arrivalPlace: fData.dest,
+                departureTime: departure,
+                arrivalTime: arrival
+            });
+
+            const crewData = [];
+
+            for (let i = 0; i < 2; i++) {
+                const [firstName, lastName] = pilots[pilotIdx % pilots.length].split(' ');
+                crewData.push({ firstName, lastName, profession: 'Пилот', FlightId: flight.id });
+                pilotIdx++;
+            }
+
+            const [navFirst, navLast] = navs[navIdx % navs.length].split(' ');
+            crewData.push({ firstName: navFirst, lastName: navLast, profession: 'Штурман', FlightId: flight.id });
+            navIdx++;
+
+            const [radFirst, radLast] = radios[radioIdx % radios.length].split(' ');
+            crewData.push({ firstName: radFirst, lastName: radLast, profession: 'Радист', FlightId: flight.id });
+            radioIdx++;
+
+            for (let i = 0; i < 2; i++) {
+                const [stewFirst, stewLast] = stews[stewIdx % stews.length].split(' ');
+                crewData.push({ firstName: stewFirst, lastName: stewLast, profession: 'Стюардесса', FlightId: flight.id });
+                stewIdx++;
+            }
+
+            await CrewMember.bulkCreate(crewData);
+        }
+
+        console.log('Mock data populated: 4 flights with full crews.');
 
         app.listen(3000, () => console.log('Server started on port 3000'));
     } catch (e) {
