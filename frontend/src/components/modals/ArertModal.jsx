@@ -14,7 +14,7 @@ export default function AlertModal({ isVisible, setIsVisible, alertText }) {
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white p-6 rounded-lg shadow-xl relative pt-9 flex flex-col"
+                className="bg-white p-6 rounded-lg shadow-xl relative pt-9 flex flex-col min-w-[300px]"
             >
                 <X
                     className={"absolute top-2 right-2"}
@@ -23,7 +23,7 @@ export default function AlertModal({ isVisible, setIsVisible, alertText }) {
                     }}
                 />
 
-                <h3 className="text-xl font-semibold mb-6 text-center mt-6">{alertText}</h3>
+                <h3 className="text-xl font-semibold mb-6 text-center mt-2">{alertText}</h3>
 
                 <Button
                     className="mt-2"

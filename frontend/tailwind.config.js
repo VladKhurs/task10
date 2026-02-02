@@ -7,13 +7,12 @@ export default {
     theme: {
         extend: {
             colors: {
-                "theme": "#1f2937",
-                "theme-hover": "#374151",
-                "accent": "#f75b00",
-                "accent-hover": "#ff6709",
-                "gray-light": "#e4e4e7",
-                "gray-medium": "#71717a",
-
+                "theme": "#2e0228", 
+                "theme-hover": "#4a0440",
+                "accent": "#00ff9d",
+                "accent-hover": "#5effc4",
+                "gray-light": "#fdf2f8",
+                "gray-medium": "#9d5c88",
             }
         },
     },

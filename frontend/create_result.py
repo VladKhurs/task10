@@ -26,9 +26,9 @@ def create_combined_file():
                     with open(file_path, 'r', encoding='utf-8', errors='ignore') as current_file:
                         content = current_file.read()
                         
-                        result_file.write(f'>>!>FILEPATH: {file_path}\n')
+                        result_file.write(f'{file_path}\n')
                         result_file.write(content)
-                        result_file.write('\n<!<ENDOFFILE!<<\n')
+                        result_file.write('\n---\n')
                 except Exception as e:
                     print(f"Не удалось прочитать файл {file_path}: {e}")
 
