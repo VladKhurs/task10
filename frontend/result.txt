@@ -586,9 +586,9 @@ export default function FlightsPage({
                             <h4 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
                                 Летная бригада
                             </h4>
-                            {flight.CrewMembers && flight.CrewMembers.length > 0 ? (
+                            {flight.crewMembers && flight.crewMembers.length > 0 ? (
                                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-                                    {flight.CrewMembers.map(member => (
+                                    {flight.crewMembers.map(member => (
                                         <li key={member.id} className="flex justify-between items-center bg-gray-50 p-2 rounded border hover:border-accent/50 transition">
                                             <div>
                                                 <div className="font-bold">{member.firstName} {member.lastName}</div>

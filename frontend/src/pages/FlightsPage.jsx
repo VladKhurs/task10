@@ -9,7 +9,7 @@ const TimeInput = ({ value, onChange, max }) => {
     const updateValue = (newVal) => {
         let val = parseInt(newVal);
         if (isNaN(val)) val = 0;
-        
+
         if (val > max) val = 0;
         if (val < 0) val = max;
 
@@ -24,25 +24,25 @@ const TimeInput = ({ value, onChange, max }) => {
                 value={value}
                 onChange={(e) => {
                     if (/^\d*$/.test(e.target.value)) {
-                         let val = parseInt(e.target.value || "0");
-                         if (val > max) return; 
-                         onChange(e);
+                        let val = parseInt(e.target.value || "0");
+                        if (val > max) return;
+                        onChange(e);
                     }
                 }}
                 maxLength={2}
                 required
             />
             <div className="absolute right-1 top-0 bottom-0 flex flex-col justify-center h-full gap-1 py-1">
-                <button 
-                    type="button" 
-                    onClick={() => updateValue(parseInt(value || "0") + 1)} 
+                <button
+                    type="button"
+                    onClick={() => updateValue(parseInt(value || "0") + 1)}
                     className="text-[8px] leading-[8px] cursor-pointer text-gray-500 hover:text-accent font-bold h-3 flex items-center justify-center bg-gray-100 w-4 rounded-t"
                 >
                     ▲
                 </button>
-                <button 
-                    type="button" 
-                    onClick={() => updateValue(parseInt(value || "0") - 1)} 
+                <button
+                    type="button"
+                    onClick={() => updateValue(parseInt(value || "0") - 1)}
                     className="text-[8px] leading-[8px] cursor-pointer text-gray-500 hover:text-accent font-bold h-3 flex items-center justify-center bg-gray-100 w-4 rounded-b"
                 >
                     ▼
@@ -67,6 +67,8 @@ export default function FlightsPage({
         depDate: "", depHour: "12", depMin: "00",
         arrDate: "", arrHour: "12", arrMin: "00"
     });
+
+    console.log('flights', flights);
 
     const [editingFlight, setEditingFlight] = useState(null);
 
@@ -196,7 +198,7 @@ export default function FlightsPage({
                                 <button onClick={() => onDeleteFlight(flight.id)} className="flex-1 md:flex-none bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Удалить</button>
                             </div>
                         )}
-                        
+
                         <div className="mb-4 border-b pb-4 md:pr-32">
                             <h2 className="text-2xl font-bold text-accent mb-2">{flight.flightNumber}</h2>
                             <div className="flex flex-col sm:flex-row gap-4 mt-2">
@@ -218,9 +220,9 @@ export default function FlightsPage({
                             <h4 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
                                 Летная бригада
                             </h4>
-                            {flight.CrewMembers && flight.CrewMembers.length > 0 ? (
+                            {flight.crewMembers && flight.crewMembers.length > 0 ? (
                                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-                                    {flight.CrewMembers.map(member => (
+                                    {flight.crewMembers.map(member => (
                                         <li key={member.id} className="flex justify-between items-center bg-gray-50 p-2 rounded border hover:border-accent/50 transition">
                                             <div>
                                                 <div className="font-bold text-sm md:text-base">{member.firstName} {member.lastName}</div>
@@ -307,7 +309,7 @@ export default function FlightsPage({
                             <Input label="Имя" value={editingCrew.firstName} onChange={e => setEditingCrew({ ...editingCrew, firstName: e.target.value })} />
                             <Input label="Фамилия" value={editingCrew.lastName} onChange={e => setEditingCrew({ ...editingCrew, lastName: e.target.value })} />
                             <Select label="Профессия" options={professions} value={editingCrew.profession} onChange={e => setEditingCrew({ ...editingCrew, profession: e.target.value })} />
-                            
+
                             <div className="flex justify-end gap-2 mt-4">
                                 <button type="button" onClick={() => setEditingCrew(null)} className="px-4 py-2 text-gray-500 hover:text-gray-800">Отмена</button>
                                 <Button type="submit">Сохранить</Button>
