@@ -18,7 +18,6 @@ import java.util.*;
 
 @SpringBootApplication
 @RestController
-// Разрешаем CORS для всех (аналог app.use(cors()))
 @CrossOrigin(origins = "*") 
 public class DemoApplication {
 
@@ -26,7 +25,6 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 
-    // --- НАСТРОЙКА CORS (чтобы точно работало с фронтом) ---
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -39,7 +37,6 @@ public class DemoApplication {
         return new CorsFilter(source);
     }
 
-    // Внедряем репозитории (доступ к таблицам)
     private final UserRepository userRepository;
     private final FlightRepository flightRepository;
     private final CrewMemberRepository crewRepository;
@@ -50,7 +47,6 @@ public class DemoApplication {
         this.crewRepository = c;
     }
 
-    // --- ФУНКЦИЯ AUTH (аналог middleware) ---
     private void checkAuth(String token, String requiredRole) {
         if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No token");
         
@@ -66,13 +62,10 @@ public class DemoApplication {
         }
     }
 
-    // --- ЭНДПОИНТЫ (Routes) ---
-
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> creds) {
         User user = userRepository.findByLoginAndPassword(creds.get("login"), creds.get("password"))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid credentials"));
-        // Возвращаем JSON { token: 1, roleName: "admin" }
         return Map.of("token", user.getId(), "roleName", user.getRole());
     }
 
@@ -108,7 +101,6 @@ public class DemoApplication {
         return Map.of("success", true);
     }
 
-    // DTO для создания члена экипажа (принимает flightId)
     @Data
     static class CrewRequest {
         private Long flightId;
@@ -158,11 +150,9 @@ public class DemoApplication {
         return Map.of("success", true);
     }
 
-    // --- ЗАПОЛНЕНИЕ БАЗЫ ДАННЫХ (аналог функции start()) ---
     @Bean
     public CommandLineRunner initData() {
         return args -> {
-            // Создаем пользователей
             if (userRepository.count() == 0) {
                 userRepository.save(new User("admin", "123", "admin"));
                 userRepository.save(new User("disp", "123", "dispatcher"));
@@ -183,7 +173,6 @@ public class DemoApplication {
         };
     }
 
-    // Вспомогательная функция для заполнения рейса
     private void createMockFlight(String number, String dest, double hours, int index, 
                                   String[] pilots, String[] navs, String[] radios, String[] stews) {
         long now = System.currentTimeMillis();
@@ -198,7 +187,6 @@ public class DemoApplication {
         f.setArrivalTime(new Date(arrivalMillis));
         f = flightRepository.save(f);
 
-        // Добавляем экипаж
         int pIdx = index * 2;
         saveCrew(f, pilots[pIdx % pilots.length], "Пилот");
         saveCrew(f, pilots[(pIdx + 1) % pilots.length], "Пилот");
@@ -221,8 +209,6 @@ public class DemoApplication {
     }
 }
 
-// --- КЛАССЫ СУЩНОСТЕЙ (Entities) ---
-
 @Entity
 @Data @NoArgsConstructor
 class User {
@@ -244,9 +230,6 @@ class Flight {
     private String arrivalPlace;
     private Date departureTime;
     private Date arrivalTime;
-    
-    // В Node.js мы делали include: CrewMember. Здесь это работает автоматически через связь.
-    // JsonIgnoreProperties нужен, чтобы не было зацикливания JSON
     @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties("flight")
     private List<CrewMember> crewMembers;
@@ -268,8 +251,6 @@ class CrewMember {
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties("crewMembers")
     private Flight flight;
 }
-
-// --- ИНТЕРФЕЙСЫ ДЛЯ БД (Repositories) ---
 
 interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByLoginAndPassword(String login, String password);
