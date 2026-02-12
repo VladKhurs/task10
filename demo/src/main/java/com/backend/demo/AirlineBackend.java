@@ -19,10 +19,10 @@ import java.util.*;
 @SpringBootApplication
 @RestController
 @CrossOrigin(origins = "*") 
-public class DemoApplication {
+public class AirlineBackend {
 
     public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
+        SpringApplication.run(AirlineBackend.class, args);
     }
 
     @Bean
@@ -41,7 +41,7 @@ public class DemoApplication {
     private final FlightRepository flightRepository;
     private final CrewMemberRepository crewRepository;
 
-    public DemoApplication(UserRepository u, FlightRepository f, CrewMemberRepository c) {
+    public AirlineBackend(UserRepository u, FlightRepository f, CrewMemberRepository c) {
         this.userRepository = u;
         this.flightRepository = f;
         this.crewRepository = c;
