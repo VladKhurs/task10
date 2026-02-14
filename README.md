@@ -25,7 +25,7 @@ http://localhost/phpmyadmin/
 фронтенд доступен по адресу
 http://localhost:5173/
 
-аккаунт тур агента
+аккаунт агента
 логин: agent@mail.com
 пароль: admin
 

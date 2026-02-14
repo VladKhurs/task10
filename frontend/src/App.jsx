@@ -8,7 +8,8 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ToursPage from "./pages/tours/ToursPage";
 import AgentDashboard from "./pages/agent/AgentDashboard";
-import ProfilePage from "./pages/profile/ProfilePage"; // <-- 1. ИМПОРТ
+import OrdersPage from "./pages/orders/OrdersPage"; // <-- ИМПОРТ НОВОЙ СТРАНИЦЫ
+import ProfilePage from "./pages/profile/ProfilePage";
 import AlertModal from "./components/modals/ArertModal";
 
 function App() {
@@ -16,7 +17,7 @@ function App() {
     const [user, setUser] = useState(null);
     const [tours, setTours] = useState([]);
     const [orders, setOrders] = useState([]);
-    
+
     const [alertData, setAlertData] = useState({ isVisible: false, text: "" });
     const [tourModalData, setTourModalData] = useState({ isVisible: false, data: null });
 
@@ -96,9 +97,9 @@ function App() {
                 headers: { Authorization: user.token }
             });
             showAlert('Тур успешно куплен!');
-            
-            const updatedUser = { 
-                ...user, 
+
+            const updatedUser = {
+                ...user,
                 purchasedTourIds: [...user.purchasedTourIds, tourId],
                 balance: res.data.newBalance
             };
@@ -148,10 +149,10 @@ function App() {
 
     const handleAddBalance = async (data) => {
         try {
-            const res = await api.post('/balance', data, {
+            await api.post('/balance', data, {
                 headers: { Authorization: user.token }
             });
-            showAlert(`Баланс пополнен. Текущий баланс пользователя: ${res.data.balance}`);
+            showAlert(`Баланс пополнен`);
         } catch (e) {
             showAlert(e.response?.data?.message || 'Ошибка пополнения');
         }
@@ -163,23 +164,26 @@ function App() {
                 <div className="flex items-center">
                     <div className="text-white font-bold text-lg mr-6">Travel Agency</div>
                     <LinkCustom to="/">Туры</LinkCustom>
-                    {user?.role === 'agent' && <LinkCustom to="/orders">Управление</LinkCustom>}
+
+                    {/* --- ИЗМЕНЕНО: Ссылки для агента --- */}
+                    {user?.role === 'agent' && (
+                        <>
+                            <LinkCustom to="/users">Пользователи</LinkCustom>
+                            <LinkCustom to="/orders">Заказы</LinkCustom>
+                        </>
+                    )}
                 </div>
                 <div className="flex items-center gap-4">
                     {user ? (
                         <>
                             {user.role === 'customer' && (
-                                <div className="text-white text-right leading-tight mr-2 hidden md:block">
-                                    <div className="text-accent text-sm font-bold">{user.balance} ₽</div>
-                                </div>
+                                <>
+                                    <div className="text-white text-right leading-tight mr-2 hidden md:block">
+                                        <div className="text-accent text-sm font-bold">{user.balance} ₽</div>
+                                    </div>
+                                    <LinkCustom to="/profile">Кабинет</LinkCustom>
+                                </>
                             )}
-
-                            {/* --- 2. КНОПКА КАБИНЕТ --- */}
-                            <LinkCustom to="/profile">Кабинет</LinkCustom>
-                            
-                            <span className="text-white/70 font-medium text-sm border-l pl-3 border-white/20">
-                                {user.role === 'agent' ? 'Агент' : ''}
-                            </span>
                             <Button onClick={handleLogout} className="bg-accent text-theme hover:bg-accent-hover py-1 text-sm font-bold">Выйти</Button>
                         </>
                     ) : (
@@ -193,9 +197,9 @@ function App() {
 
             <Routes>
                 <Route path="/" element={
-                    <ToursPage 
-                        tours={tours} 
-                        user={user} 
+                    <ToursPage
+                        tours={tours}
+                        user={user}
                         onBuy={handleBuyTour}
                         onDelete={handleDeleteTour}
                         onEdit={(tour) => setTourModalData({ isVisible: true, data: tour })}
@@ -204,26 +208,32 @@ function App() {
                 } />
                 <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
                 <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
-                
-                {/* --- 3. РОУТ ПРОФИЛЯ --- */}
+
                 <Route path="/profile" element={
                     user ? <ProfilePage userToken={user.token} /> : <div className="text-center mt-10">Пожалуйста, войдите в систему</div>
                 } />
 
+                {/* --- НОВЫЕ РОУТЫ АГЕНТА --- */}
+                <Route path="/users" element={
+                    user?.role === 'agent' ?
+                        <AgentDashboard onAddBalance={handleAddBalance} /> :
+                        <div className="text-center mt-10">Доступ запрещен</div>
+                } />
+
                 <Route path="/orders" element={
-                    user?.role === 'agent' ? 
-                    <AgentDashboard orders={orders} onAddBalance={handleAddBalance} /> : 
-                    <div className="text-center mt-10">Доступ запрещен</div>
+                    user?.role === 'agent' ?
+                        <OrdersPage orders={orders} /> :
+                        <div className="text-center mt-10">Доступ запрещен</div>
                 } />
             </Routes>
 
-            <AlertModal 
-                isVisible={alertData.isVisible} 
-                setIsVisible={(v) => setAlertData(p => ({ ...p, isVisible: v }))} 
-                alertText={alertData.text} 
+            <AlertModal
+                isVisible={alertData.isVisible}
+                setIsVisible={(v) => setAlertData(p => ({ ...p, isVisible: v }))}
+                alertText={alertData.text}
             />
 
-            <TourModal 
+            <TourModal
                 isVisible={tourModalData.isVisible}
                 setIsVisible={(v) => setTourModalData(p => ({ ...p, isVisible: v }))}
                 initialData={tourModalData.data}

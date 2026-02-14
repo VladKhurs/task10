@@ -194,7 +194,7 @@ public class AgencyServer {
         return orderRepository.findAll();
     }
 
-@PostMapping("/buy")
+    @PostMapping("/buy")
     public Map<String, Object> buyTour(@RequestHeader(value="Authorization", required=false) String token,
                                        @RequestBody Map<String, Long> body) {
         User user = checkAuth(token, "customer");
@@ -230,6 +230,14 @@ public class AgencyServer {
             "newBalance", user.getBalance() 
         );
     }
+
+    @GetMapping("/users")
+    public List<User> getAllUsers(@RequestHeader(value="Authorization", required=false) String token) {
+        checkAuth(token, "agent");
+        // Возвращаем всех пользователей, чтобы агент мог управлять их балансом
+        return userRepository.findAll();
+    }
+
     // --- DATA SEEDING (Аналог функции start()) ---
     @Bean
     public CommandLineRunner initData() {
@@ -252,6 +260,8 @@ public class AgencyServer {
                 customer.setRole("customer");
                 customer.setName("Иван");
                 customer.setSurname("Иванов");
+                customer.setPatronymic("Иванович");
+                customer.setPhone("+375299435586");
                 customer.setBalance(50000.0);
                 userRepository.save(customer);
 
@@ -355,6 +365,18 @@ class Order {
     @ManyToOne
     @JoinColumn(name = "tour_id")
     private Tour tour;
+
+    // --- ВАЖНО: Добавляем поле даты ---
+    // Используем String для простоты передачи в JSON
+    @Column(name = "created_at")
+    private String createdAt;
+
+    // Метод, который срабатывает ПЕРЕД сохранением в базу
+    @PrePersist
+    protected void onCreate() {
+        // Сохраняем текущую дату и время в формате ISO (например: 2026-02-14T17:30:00)
+        this.createdAt = java.time.LocalDateTime.now().toString();
+    }
 }
 
 // --- REPOSITORIES ---
