@@ -8,6 +8,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ToursPage from "./pages/tours/ToursPage";
 import AgentDashboard from "./pages/agent/AgentDashboard";
+import ProfilePage from "./pages/profile/ProfilePage"; // <-- 1. ИМПОРТ
 import AlertModal from "./components/modals/ArertModal";
 
 function App() {
@@ -71,7 +72,9 @@ function App() {
             const userData = {
                 token: res.data.token,
                 role: res.data.roleName,
-                purchasedTourIds: res.data.purchasedTourIds
+                purchasedTourIds: res.data.purchasedTourIds,
+                name: res.data.name,
+                balance: res.data.balance
             };
             setUser(userData);
             localStorage.setItem('user_data', JSON.stringify(userData));
@@ -89,16 +92,21 @@ function App() {
 
     const handleBuyTour = async (tourId) => {
         try {
-            await api.post('/buy', { tourId }, {
+            const res = await api.post('/buy', { tourId }, {
                 headers: { Authorization: user.token }
             });
             showAlert('Тур успешно куплен!');
             
-            const updatedUser = { ...user, purchasedTourIds: [...user.purchasedTourIds, tourId] };
+            const updatedUser = { 
+                ...user, 
+                purchasedTourIds: [...user.purchasedTourIds, tourId],
+                balance: res.data.newBalance
+            };
             setUser(updatedUser);
             localStorage.setItem('user_data', JSON.stringify(updatedUser));
         } catch (e) {
-            showAlert(e.response?.data?.message || 'Ошибка покупки');
+            const errorMsg = e.response?.data?.message || e.response?.data || 'Ошибка покупки';
+            showAlert(errorMsg);
         }
     };
 
@@ -160,8 +168,19 @@ function App() {
                 <div className="flex items-center gap-4">
                     {user ? (
                         <>
-                            <span className="text-white font-medium">{user.role === 'agent' ? 'Агент' : 'Клиент'}</span>
-                            <Button onClick={handleLogout} className="bg-accent text-theme hover:bg-accent-hover py-1">Выйти</Button>
+                            {user.role === 'customer' && (
+                                <div className="text-white text-right leading-tight mr-2 hidden md:block">
+                                    <div className="text-accent text-sm font-bold">{user.balance} ₽</div>
+                                </div>
+                            )}
+
+                            {/* --- 2. КНОПКА КАБИНЕТ --- */}
+                            <LinkCustom to="/profile">Кабинет</LinkCustom>
+                            
+                            <span className="text-white/70 font-medium text-sm border-l pl-3 border-white/20">
+                                {user.role === 'agent' ? 'Агент' : ''}
+                            </span>
+                            <Button onClick={handleLogout} className="bg-accent text-theme hover:bg-accent-hover py-1 text-sm font-bold">Выйти</Button>
                         </>
                     ) : (
                         <>
@@ -185,6 +204,12 @@ function App() {
                 } />
                 <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
                 <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
+                
+                {/* --- 3. РОУТ ПРОФИЛЯ --- */}
+                <Route path="/profile" element={
+                    user ? <ProfilePage userToken={user.token} /> : <div className="text-center mt-10">Пожалуйста, войдите в систему</div>
+                } />
+
                 <Route path="/orders" element={
                     user?.role === 'agent' ? 
                     <AgentDashboard orders={orders} onAddBalance={handleAddBalance} /> : 

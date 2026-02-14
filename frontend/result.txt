@@ -1,27 +1,4 @@
-./tailwind.config.js
-/** @type {import('tailwindcss').Config} */
-export default {
-    content: [
-        "./index.html",
-        "./src/**/*.{js,ts,jsx,tsx}"
-    ],
-    theme: {
-        extend: {
-            colors: {
-                "theme": "#2e0228", 
-                "theme-hover": "#4a0440",
-                "accent": "#00ff9d",
-                "accent-hover": "#5effc4",
-                "gray-light": "#fdf2f8",
-                "gray-medium": "#9d5c88",
-            }
-        },
-    },
-    plugins: [],
-};
-
----
-./eslint.config.js
+.\eslint.config.js
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -53,7 +30,23 @@ export default defineConfig([
 ])
 
 ---
-./package.json
+.\index.html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ТЗ_JS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+---
+.\package.json
 {
   "name": "frontend",
   "private": true,
@@ -89,23 +82,39 @@ export default defineConfig([
 }
 
 ---
-./index.html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/js.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ТЗ_JS</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+.\postcss.config.js
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
 
 ---
-./vite.config.js
+.\tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+export default {
+    content: [
+        "./index.html",
+        "./src/**/*.{js,ts,jsx,tsx}"
+    ],
+    theme: {
+        extend: {
+            colors: {
+                "theme": "#2e0228", 
+                "theme-hover": "#4a0440",
+                "accent": "#00ff9d",
+                "accent-hover": "#5effc4",
+                "gray-light": "#fdf2f8",
+                "gray-medium": "#9d5c88",
+            }
+        },
+    },
+    plugins: [],
+};
+
+---
+.\vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -115,16 +124,253 @@ export default defineConfig({
 })
 
 ---
-./postcss.config.js
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
+.\src\App.css
+#root {
+    margin: 0 auto;
+    text-align: center;
+    max-width: screen;
 }
 
 ---
-./src/reset.css
+.\src\App.jsx
+import React, { useEffect, useState } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import api from "./api/axiosConfig";
+import LinkCustom from "./components/ui/LinkCustom";
+import Button from "./components/ui/Button";
+import TourModal from "./components/modals/TourModal";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import ToursPage from "./pages/tours/ToursPage";
+import AgentDashboard from "./pages/agent/AgentDashboard";
+import AlertModal from "./components/modals/ArertModal";
+
+function App() {
+    const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+    const [tours, setTours] = useState([]);
+    const [orders, setOrders] = useState([]);
+    
+    const [alertData, setAlertData] = useState({ isVisible: false, text: "" });
+    const [tourModalData, setTourModalData] = useState({ isVisible: false, data: null });
+
+    const showAlert = (text) => setAlertData({ isVisible: true, text });
+
+    const fetchTours = async () => {
+        try {
+            const res = await api.get('/tours');
+            setTours(res.data);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const fetchOrders = async () => {
+        try {
+            const res = await api.get('/orders', {
+                headers: { Authorization: user.token }
+            });
+            setOrders(res.data);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user_data');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+        fetchTours();
+    }, []);
+
+    useEffect(() => {
+        if (user?.role === 'agent') {
+            fetchOrders();
+        }
+    }, [user]);
+
+    const handleRegister = async (data) => {
+        try {
+            await api.post('/register', data);
+            showAlert('Регистрация успешна! Теперь войдите.');
+            navigate('/login');
+        } catch (e) {
+            showAlert(e.response?.data?.message || 'Ошибка регистрации');
+        }
+    };
+
+    const handleLogin = async (data) => {
+        try {
+            const res = await api.post('/login', data);
+            const userData = {
+                token: res.data.token,
+                role: res.data.roleName,
+                purchasedTourIds: res.data.purchasedTourIds
+            };
+            setUser(userData);
+            localStorage.setItem('user_data', JSON.stringify(userData));
+            navigate('/');
+        } catch (e) {
+            showAlert(e.response?.data?.message || 'Ошибка входа');
+        }
+    };
+
+    const handleLogout = () => {
+        setUser(null);
+        localStorage.removeItem('user_data');
+        navigate('/');
+    };
+
+    const handleBuyTour = async (tourId) => {
+        try {
+            await api.post('/buy', { tourId }, {
+                headers: { Authorization: user.token }
+            });
+            showAlert('Тур успешно куплен!');
+            
+            const updatedUser = { ...user, purchasedTourIds: [...user.purchasedTourIds, tourId] };
+            setUser(updatedUser);
+            localStorage.setItem('user_data', JSON.stringify(updatedUser));
+        } catch (e) {
+            showAlert(e.response?.data?.message || 'Ошибка покупки');
+        }
+    };
+
+    const handleCreateTour = async (data) => {
+        try {
+            await api.post('/tours', data, {
+                headers: { Authorization: user.token }
+            });
+            setTourModalData({ isVisible: false, data: null });
+            fetchTours();
+        } catch (e) {
+            showAlert(e.response?.data?.message || 'Ошибка создания');
+        }
+    };
+
+    const handleUpdateTour = async (data) => {
+        try {
+            await api.put(`/tours/${tourModalData.data.id}`, data, {
+                headers: { Authorization: user.token }
+            });
+            setTourModalData({ isVisible: false, data: null });
+            fetchTours();
+        } catch (e) {
+            showAlert(e.response?.data?.message || 'Ошибка обновления');
+        }
+    };
+
+    const handleDeleteTour = async (id) => {
+        if (!confirm('Удалить тур?')) return;
+        try {
+            await api.delete(`/tours/${id}`, {
+                headers: { Authorization: user.token }
+            });
+            fetchTours();
+        } catch (e) {
+            showAlert(e.response?.data?.message || 'Ошибка удаления');
+        }
+    };
+
+    const handleAddBalance = async (data) => {
+        try {
+            const res = await api.post('/balance', data, {
+                headers: { Authorization: user.token }
+            });
+            showAlert(`Баланс пополнен. Текущий баланс пользователя: ${res.data.balance}`);
+        } catch (e) {
+            showAlert(e.response?.data?.message || 'Ошибка пополнения');
+        }
+    };
+
+    return (
+        <div className="p-3 min-h-screen bg-gray-50">
+            <nav className="bg-theme h-16 rounded-md flex flex-row items-center justify-between px-6 shadow-md mb-4">
+                <div className="flex items-center">
+                    <div className="text-white font-bold text-lg mr-6">Travel Agency</div>
+                    <LinkCustom to="/">Туры</LinkCustom>
+                    {user?.role === 'agent' && <LinkCustom to="/orders">Управление</LinkCustom>}
+                </div>
+                <div className="flex items-center gap-4">
+                    {user ? (
+                        <>
+                            <span className="text-white font-medium">{user.role === 'agent' ? 'Агент' : 'Клиент'}</span>
+                            <Button onClick={handleLogout} className="bg-accent text-theme hover:bg-accent-hover py-1">Выйти</Button>
+                        </>
+                    ) : (
+                        <>
+                            <LinkCustom to="/login">Вход</LinkCustom>
+                            <LinkCustom to="/register">Регистрация</LinkCustom>
+                        </>
+                    )}
+                </div>
+            </nav>
+
+            <Routes>
+                <Route path="/" element={
+                    <ToursPage 
+                        tours={tours} 
+                        user={user} 
+                        onBuy={handleBuyTour}
+                        onDelete={handleDeleteTour}
+                        onEdit={(tour) => setTourModalData({ isVisible: true, data: tour })}
+                        onOpenCreate={() => setTourModalData({ isVisible: true, data: null })}
+                    />
+                } />
+                <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+                <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
+                <Route path="/orders" element={
+                    user?.role === 'agent' ? 
+                    <AgentDashboard orders={orders} onAddBalance={handleAddBalance} /> : 
+                    <div className="text-center mt-10">Доступ запрещен</div>
+                } />
+            </Routes>
+
+            <AlertModal 
+                isVisible={alertData.isVisible} 
+                setIsVisible={(v) => setAlertData(p => ({ ...p, isVisible: v }))} 
+                alertText={alertData.text} 
+            />
+
+            <TourModal 
+                isVisible={tourModalData.isVisible}
+                setIsVisible={(v) => setTourModalData(p => ({ ...p, isVisible: v }))}
+                initialData={tourModalData.data}
+                onSubmit={tourModalData.data ? handleUpdateTour : handleCreateTour}
+            />
+        </div>
+    );
+}
+
+export default App;
+---
+.\src\index.css
+@import url("./reset.css");
+@import url("./App.css");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+---
+.\src\main.jsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import "./index.css";
+import App from "./App.jsx";
+
+createRoot(document.getElementById("root")).render(
+    <StrictMode>
+        <BrowserRouter>
+            <App />
+        </BrowserRouter>
+    </StrictMode>
+);
+
+---
+.\src\reset.css
 *,
 *::before,
 *::after {
@@ -186,90 +432,19 @@ textarea:not([rows]) {
   scroll-margin-block: 5ex;
 }
 ---
-./src/App.css
-#root {
-    margin: 0 auto;
-    text-align: center;
-    max-width: screen;
-}
+.\src\api\axiosConfig.js
+import axios from 'axios';
 
+const api = axios.create({
+  baseURL: 'http://localhost:3000',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export default api;
 ---
-./src/App.jsx
-import { Routes, Route } from "react-router-dom";
-import ClientsPage from "./pages/clients/ClientsPage.jsx";
-import ServicesPage from "./pages/services/ServicesPage";
-import LinkCustom from "./components/ui/LinkCustom";
-
-function App() {
-
-    return (
-        <div className="p-3">
-            <nav className="bg-theme h-14 rounded-md flex flex-row items-center justify-center">
-                <LinkCustom to="/">Клиенты</LinkCustom>
-                <LinkCustom to="/services">Услуги</LinkCustom>
-            </nav>
-
-            <Routes>
-                <Route path="/" element={<ClientsPage/>} />
-                <Route path="/services" element={<ServicesPage/>} />
-            </Routes>
-        </div>
-    );
-}
-
-export default App;
-
----
-./src/main.jsx
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import "./index.css";
-import App from "./App.jsx";
-
-createRoot(document.getElementById("root")).render(
-    <StrictMode>
-        <BrowserRouter>
-            <App />
-        </BrowserRouter>
-    </StrictMode>
-);
-
----
-./src/index.css
-@import url("./reset.css");
-@import url("./App.css");
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-
----
-./src/pages/services/ServicesPage.jsx
-import React from 'react'
-
-export default function ServicesPage() {
-  return (
-    <div>
-      ServicesPage
-    </div>
-  )
-}
-
----
-./src/pages/clients/ClientsPage.jsx
-import React from 'react'
-
-export default function ClientsPage() {
-  return (
-    <div>
-      ClientsPage
-    </div>
-  )
-}
-
----
-./src/components/modals/ArertModal.jsx
+.\src\components\modals\ArertModal.jsx
 import Button from "../ui/Button";
 import X from "../ui/X";
 
@@ -286,7 +461,7 @@ export default function AlertModal({ isVisible, setIsVisible, alertText }) {
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white p-6 rounded-lg shadow-xl relative pt-9 flex flex-col"
+                className="bg-white p-6 rounded-lg shadow-xl relative pt-9 flex flex-col min-w-[300px]"
             >
                 <X
                     className={"absolute top-2 right-2"}
@@ -295,7 +470,7 @@ export default function AlertModal({ isVisible, setIsVisible, alertText }) {
                     }}
                 />
 
-                <h3 className="text-xl font-semibold mb-6 text-center mt-6">{alertText}</h3>
+                <h3 className="text-xl font-semibold mb-6 text-center mt-2">{alertText}</h3>
 
                 <Button
                     className="mt-2"
@@ -307,24 +482,348 @@ export default function AlertModal({ isVisible, setIsVisible, alertText }) {
         </div>
     );
 }
+---
+.\src\components\modals\TourModal.jsx
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import X from '../ui/X';
+
+export default function TourModal({ isVisible, setIsVisible, onSubmit, initialData }) {
+    const { register, handleSubmit, reset, setValue } = useForm();
+
+    useEffect(() => {
+        if (isVisible) {
+            if (initialData) {
+                Object.keys(initialData).forEach(key => {
+                    setValue(key, initialData[key]);
+                });
+            } else {
+                reset({ isHot: false });
+            }
+        }
+    }, [isVisible, initialData, reset, setValue]);
+
+    if (!isVisible) return null;
+
+    return (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-medium/50 backdrop-blur-sm z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative max-h-[90vh] overflow-y-auto">
+                <X className="absolute top-2 right-2" onClick={() => setIsVisible(false)} />
+                <h3 className="text-xl font-bold mb-4">{initialData ? 'Редактировать тур' : 'Создать тур'}</h3>
+                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+                    <Input register={register} name="name" placeholder="Название тура" options={{ required: true }} />
+                    <Input register={register} name="origin" placeholder="Место отправления" options={{ required: true }} />
+                    <Input register={register} name="destination" placeholder="Место назначения" options={{ required: true }} />
+                    <Input register={register} name="tour_type" placeholder="Тип тура (Отдых, Шоппинг...)" options={{ required: true }} />
+                    
+                    <div className="flex gap-2">
+                        <div className="w-1/2">
+                            <label className="text-xs">Дата начала</label>
+                            <Input register={register} type="date" name="dateStart" options={{ required: true }} />
+                        </div>
+                        <div className="w-1/2">
+                            <label className="text-xs">Дата конца</label>
+                            <Input register={register} type="date" name="dateEnd" options={{ required: true }} />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                         <Input register={register} type="number" name="price" placeholder="Цена" options={{ required: true }} />
+                         <Input register={register} type="number" name="discountPrice" placeholder="Цена со скидкой" />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <input type="checkbox" {...register('isHot')} id="isHot" />
+                        <label htmlFor="isHot">Горящий тур</label>
+                    </div>
+
+                    <Button type="submit" className="mt-2">Сохранить</Button>
+                </form>
+            </div>
+        </div>
+    );
+}
+---
+.\src\components\ui\Button.jsx
+import React from 'react';
+
+export default function Button({ children, onClick, className = '', type = 'button', disabled = false }) {
+    return (
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            className={`bg-theme text-white px-4 py-2 rounded hover:bg-theme-hover transition disabled:opacity-50 ${className}`}
+        >
+            {children}
+        </button>
+    );
+}
+---
+.\src\components\ui\Input.jsx
+import React from 'react';
+
+export default function Input({ register, name, options, placeholder, type = 'text', className = '' }) {
+    return (
+        <input
+            {...register(name, options)}
+            type={type}
+            placeholder={placeholder}
+            className={`border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-theme ${className}`}
+        />
+    );
+}
+---
+.\src\components\ui\LinkCustom.jsx
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+
+export default function LinkCustom({ to, children }) {
+    const location = useLocation();
+    const isActive = location.pathname === to;
+
+    return (
+        <Link
+            to={to}
+            className={`mx-2 font-bold transition ${
+                isActive ? 'text-accent' : 'text-gray-light hover:text-accent-hover'
+            }`}
+        >
+            {children}
+        </Link>
+    );
+}
+---
+.\src\components\ui\X.jsx
+import React from 'react';
+
+export default function X({ onClick, className = '' }) {
+    return (
+        <button onClick={onClick} className={`font-bold text-gray-500 hover:text-red-500 ${className}`}>
+            &#10005;
+        </button>
+    );
+}
+---
+.\src\pages\agent\AgentDashboard.jsx
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import { formatDate } from '../../utils/formatters';
+
+export default function AgentDashboard({ orders, onAddBalance }) {
+    const { register, handleSubmit, reset } = useForm();
+
+    const onSubmitBalance = (data) => {
+        onAddBalance(data);
+        reset();
+    };
+
+    return (
+        <div className="p-4 max-w-6xl mx-auto">
+            <div className="mb-10 bg-white p-6 rounded shadow">
+                <h2 className="text-xl font-bold mb-4 text-theme">Пополнить баланс пользователя</h2>
+                <form onSubmit={handleSubmit(onSubmitBalance)} className="flex gap-4 items-end">
+                    <div className="w-1/3">
+                        <label className="block text-sm mb-1">ID пользователя</label>
+                        <Input register={register} name="userId" placeholder="ID" options={{ required: true }} />
+                    </div>
+                    <div className="w-1/3">
+                        <label className="block text-sm mb-1">Сумма</label>
+                        <Input register={register} type="number" name="amount" placeholder="0.00" options={{ required: true }} />
+                    </div>
+                    <Button type="submit">Пополнить</Button>
+                </form>
+            </div>
+
+            <h2 className="text-2xl font-bold mb-4 text-theme">Все заказы</h2>
+            <div className="overflow-x-auto bg-white rounded shadow">
+                <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-100 uppercase text-gray-600">
+                        <tr>
+                            <th className="p-3">ID Заказа</th>
+                            <th className="p-3">Тур</th>
+                            <th className="p-3">Клиент (ID)</th>
+                            <th className="p-3">Email</th>
+                            <th className="p-3">Дата создания</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {orders.map(order => (
+                            <tr key={order.id} className="border-b hover:bg-gray-50">
+                                <td className="p-3">{order.id}</td>
+                                <td className="p-3 font-medium">{order.Tour?.name}</td>
+                                <td className="p-3">{order.User?.name} {order.User?.surname} ({order.UserId})</td>
+                                <td className="p-3">{order.User?.email}</td>
+                                <td className="p-3">{formatDate(order.createdAt)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {orders.length === 0 && <div className="p-4 text-center text-gray-500">Заказов пока нет</div>}
+            </div>
+        </div>
+    );
+}
+---
+.\src\pages\auth\LoginPage.jsx
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+
+export default function LoginPage({ onLogin }) {
+    const { register, handleSubmit } = useForm();
+
+    return (
+        <div className="flex flex-col items-center mt-10">
+            <div className="bg-white p-8 rounded shadow-md w-96">
+                <h2 className="text-2xl font-bold mb-6 text-theme">Вход</h2>
+                <form onSubmit={handleSubmit(onLogin)} className="flex flex-col gap-4">
+                    <Input register={register} name="email" placeholder="Email" options={{ required: true }} />
+                    <Input register={register} name="password" type="password" placeholder="Пароль" options={{ required: true }} />
+                    <Button type="submit">Войти</Button>
+                </form>
+            </div>
+        </div>
+    );
+}
+---
+.\src\pages\auth\RegisterPage.jsx
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+
+export default function RegisterPage({ onRegister }) {
+    const { register, handleSubmit } = useForm();
+
+    return (
+        <div className="flex flex-col items-center mt-10">
+            <div className="bg-white p-8 rounded shadow-md w-96">
+                <h2 className="text-2xl font-bold mb-6 text-theme">Регистрация</h2>
+                <form onSubmit={handleSubmit(onRegister)} className="flex flex-col gap-4">
+                    <Input register={register} name="email" placeholder="Email" options={{ required: true }} />
+                    <Input register={register} name="password" type="password" placeholder="Пароль" options={{ required: true }} />
+                    <Input register={register} name="name" placeholder="Имя" />
+                    <Input register={register} name="surname" placeholder="Фамилия" />
+                    <Input register={register} name="patronymic" placeholder="Отчество" />
+                    <Input register={register} name="phone" placeholder="Телефон" />
+                    <Button type="submit">Зарегистрироваться</Button>
+                </form>
+            </div>
+        </div>
+    );
+}
+---
+.\src\pages\clients\ClientsPage.jsx
+import React from 'react'
+
+export default function ClientsPage() {
+  return (
+    <div>
+      ClientsPage
+    </div>
+  )
+}
 
 ---
-./src/api/axiosConfig.js
-import axios from 'axios';
+.\src\pages\services\ServicesPage.jsx
+import React from 'react'
 
-const api = axios.create({
-  baseURL: 'http://localhost:5000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export default function ServicesPage() {
+  return (
+    <div>
+      ServicesPage
+    </div>
+  )
+}
 
-export default api
 ---
-./src/utils/formatters.js
+.\src\pages\tours\ToursPage.jsx
+import React from 'react';
+import { formatDate } from '../../utils/formatters';
+import Button from '../../components/ui/Button';
+
+export default function ToursPage({ 
+    tours, 
+    user, 
+    onBuy, 
+    onDelete, 
+    onEdit, 
+    onOpenCreate 
+}) {
+    return (
+        <div className="p-4">
+            {user?.role === 'agent' && (
+                <div className="mb-6 flex justify-center">
+                    <Button onClick={onOpenCreate}>+ Добавить тур</Button>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {tours.map(tour => {
+                    const isPurchased = user?.purchasedTourIds?.includes(tour.id);
+                    const finalPrice = tour.discountPrice || tour.price;
+
+                    return (
+                        <div key={tour.id} className="bg-white border rounded-lg shadow hover:shadow-lg transition p-5 relative flex flex-col h-full">
+                            {tour.isHot && (
+                                <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                                    ГОРЯЩИЙ
+                                </span>
+                            )}
+                            
+                            <h3 className="text-xl font-bold text-theme mb-2">{tour.name}</h3>
+                            <div className="text-sm text-gray-600 mb-4">
+                                <p>{tour.origin} &rarr; {tour.destination}</p>
+                                <p>{formatDate(tour.dateStart)} - {formatDate(tour.dateEnd)}</p>
+                                <p className="italic text-gray-400">{tour.tour_type}</p>
+                            </div>
+
+                            <div className="mt-auto">
+                                <div className="flex items-end gap-2 mb-4">
+                                    <span className="text-2xl font-bold text-theme">{finalPrice} ₽</span>
+                                    {tour.discountPrice && (
+                                        <span className="text-sm text-gray-400 line-through mb-1">{tour.price} ₽</span>
+                                    )}
+                                </div>
+
+                                {user?.role === 'customer' && (
+                                    <Button 
+                                        className={`w-full ${isPurchased ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                        onClick={() => onBuy(tour.id)}
+                                        disabled={isPurchased}
+                                    >
+                                        {isPurchased ? 'Куплено' : 'Купить'}
+                                    </Button>
+                                )}
+
+                                {user?.role === 'agent' && (
+                                    <div className="flex gap-2">
+                                        <Button className="w-1/2 bg-blue-600 hover:bg-blue-700" onClick={() => onEdit(tour)}>
+                                            Изменить
+                                        </Button>
+                                        <Button className="w-1/2 bg-red-600 hover:bg-red-700" onClick={() => onDelete(tour.id)}>
+                                            Удалить
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+---
+.\src\utils\formatters.js
 export const formatDate = (dateString) => {
     if (!dateString) return "—";
     return new Date(dateString).toLocaleDateString('ru-RU');
 };
-
 ---

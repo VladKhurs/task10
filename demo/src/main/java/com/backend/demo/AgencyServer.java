@@ -99,16 +99,34 @@ public class AgencyServer {
         User user = userRepository.findByEmailAndPassword(email, password)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
-        // Получаем список ID купленных туров
         List<Order> orders = orderRepository.findByUser(user);
         List<Long> purchasedTourIds = orders.stream()
                 .map(order -> order.getTour().getId())
                 .collect(Collectors.toList());
 
         Map<String, Object> response = new HashMap<>();
-        response.put("token", user.getId() + "-" + user.getRole()); // Формат токена как в Node.js
+        response.put("token", user.getId() + "-" + user.getRole());
         response.put("roleName", user.getRole());
         response.put("purchasedTourIds", purchasedTourIds);
+        
+        // --- ДОБАВЛЕНО: Возвращаем имя и баланс ---
+        response.put("name", user.getName());
+        response.put("balance", user.getBalance());
+        // ------------------------------------------
+        
+        return response;
+    }
+
+    @GetMapping("/profile")
+    public Map<String, Object> getProfile(@RequestHeader(value="Authorization", required=false) String token) {
+        // null означает, что роль не важна, главное, чтобы пользователь был авторизован
+        User user = checkAuth(token, null); 
+        
+        List<Order> orders = orderRepository.findByUser(user);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", user);
+        response.put("orders", orders);
         
         return response;
     }
@@ -176,7 +194,7 @@ public class AgencyServer {
         return orderRepository.findAll();
     }
 
-    @PostMapping("/buy")
+@PostMapping("/buy")
     public Map<String, Object> buyTour(@RequestHeader(value="Authorization", required=false) String token,
                                        @RequestBody Map<String, Long> body) {
         User user = checkAuth(token, "customer");
@@ -189,13 +207,15 @@ public class AgencyServer {
                             ? tour.getDiscountPrice() 
                             : tour.getPrice();
 
+        // --- ИЗМЕНЕНО: Проверка баланса с точным текстом ошибки ---
         if (user.getBalance() < priceToPay) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Недостаточно средств на счете");
+            // Текст ошибки "Не хватает средств" как вы просили
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Не хватает средств");
         }
 
         // Списываем средства
         user.setBalance(user.getBalance() - priceToPay);
-        userRepository.save(user);
+        userRepository.save(user); // Сохраняем обновленный баланс в БД
 
         // Создаем заказ
         Order order = new Order();
@@ -203,9 +223,13 @@ public class AgencyServer {
         order.setTour(tour);
         orderRepository.save(order);
 
-        return Map.of("message", "Tour purchased", "tourId", tour.getId());
+        // --- ИЗМЕНЕНО: Возвращаем новый баланс, чтобы обновить фронтенд ---
+        return Map.of(
+            "message", "Tour purchased", 
+            "tourId", tour.getId(),
+            "newBalance", user.getBalance() 
+        );
     }
-
     // --- DATA SEEDING (Аналог функции start()) ---
     @Bean
     public CommandLineRunner initData() {
