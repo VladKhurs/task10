@@ -8,9 +8,7 @@ export default function LinkCustom({ to, children }) {
     return (
         <Link
             to={to}
-            className={`mx-2 font-bold transition ${
-                isActive ? 'text-accent' : 'text-gray-light hover:text-accent-hover'
-            }`}
+            className={`nav-link ${isActive ? 'active' : ''}`}
         >
             {children}
         </Link>

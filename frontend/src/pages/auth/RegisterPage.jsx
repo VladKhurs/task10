@@ -7,10 +7,10 @@ export default function RegisterPage({ onRegister }) {
     const { register, handleSubmit } = useForm();
 
     return (
-        <div className="flex flex-col items-center mt-10">
-            <div className="bg-white p-8 rounded shadow-md w-96">
-                <h2 className="text-2xl font-bold mb-6 text-theme">Регистрация</h2>
-                <form onSubmit={handleSubmit(onRegister)} className="flex flex-col gap-4">
+        <div className="auth-container">
+            <div className="auth-box">
+                <h2 className="page-title" style={{textAlign: 'center'}}>Регистрация</h2>
+                <form onSubmit={handleSubmit(onRegister)} className="form-group">
                     <Input register={register} name="email" placeholder="Email" options={{ required: true }} />
                     <Input register={register} name="password" type="password" placeholder="Пароль" options={{ required: true }} />
                     <Input register={register} name="name" placeholder="Имя" />

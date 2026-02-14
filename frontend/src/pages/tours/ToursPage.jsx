@@ -11,44 +11,45 @@ export default function ToursPage({
     onOpenCreate 
 }) {
     return (
-        <div className="p-4">
+        <div className="container">
             {user?.role === 'agent' && (
-                <div className="mb-6 flex justify-center">
+                <div style={{display: 'flex', justifyContent: 'center', marginBottom: '1.5rem'}}>
                     <Button onClick={onOpenCreate}>+ Добавить тур</Button>
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="tours-grid">
                 {tours.map(tour => {
                     const isPurchased = user?.purchasedTourIds?.includes(tour.id);
                     const finalPrice = tour.discountPrice || tour.price;
 
                     return (
-                        <div key={tour.id} className="bg-white border rounded-lg shadow hover:shadow-lg transition p-5 relative flex flex-col h-full">
+                        <div key={tour.id} className="tour-card">
                             {tour.isHot && (
-                                <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                                <span className="hot-badge">
                                     ГОРЯЩИЙ
                                 </span>
                             )}
                             
-                            <h3 className="text-xl font-bold text-theme mb-2">{tour.name}</h3>
-                            <div className="text-sm text-gray-600 mb-4">
+                            <h3 className="tour-title">{tour.name}</h3>
+                            <div className="tour-info">
                                 <p>{tour.origin} &rarr; {tour.destination}</p>
                                 <p>{formatDate(tour.dateStart)} - {formatDate(tour.dateEnd)}</p>
-                                <p className="italic text-gray-400">{tour.tour_type}</p>
+                                <p className="tour-type">{tour.tour_type}</p>
                             </div>
 
-                            <div className="mt-auto">
-                                <div className="flex items-end gap-2 mb-4">
-                                    <span className="text-2xl font-bold text-theme">{finalPrice} ₽</span>
+                            <div className="tour-price-block">
+                                <div className="price-row">
+                                    <span className="price-current">{finalPrice} ₽</span>
                                     {tour.discountPrice && (
-                                        <span className="text-sm text-gray-400 line-through mb-1">{tour.price} ₽</span>
+                                        <span className="price-old">{tour.price} ₽</span>
                                     )}
                                 </div>
 
                                 {user?.role === 'customer' && (
                                     <Button 
-                                        className={`w-full ${isPurchased ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                        className={isPurchased ? 'btn-success' : ''}
+                                        style={{width: '100%'}}
                                         onClick={() => onBuy(tour.id)}
                                         disabled={isPurchased}
                                     >
@@ -57,11 +58,11 @@ export default function ToursPage({
                                 )}
 
                                 {user?.role === 'agent' && (
-                                    <div className="flex gap-2">
-                                        <Button className="w-1/2 bg-blue-600 hover:bg-blue-700" onClick={() => onEdit(tour)}>
+                                    <div className="btn-group">
+                                        <Button className="btn-blue" style={{width: '50%'}} onClick={() => onEdit(tour)}>
                                             Изменить
                                         </Button>
-                                        <Button className="w-1/2 bg-red-600 hover:bg-red-700" onClick={() => onDelete(tour.id)}>
+                                        <Button className="btn-danger" style={{width: '50%'}} onClick={() => onDelete(tour.id)}>
                                             Удалить
                                         </Button>
                                     </div>

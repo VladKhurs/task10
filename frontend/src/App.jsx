@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import api from "./api/axiosConfig";
 import LinkCustom from "./components/ui/LinkCustom";
 import Button from "./components/ui/Button";
@@ -8,7 +8,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ToursPage from "./pages/tours/ToursPage";
 import AgentDashboard from "./pages/agent/AgentDashboard";
-import OrdersPage from "./pages/orders/OrdersPage"; // <-- ИМПОРТ НОВОЙ СТРАНИЦЫ
+import OrdersPage from "./pages/orders/OrdersPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import AlertModal from "./components/modals/ArertModal";
 
@@ -79,7 +79,7 @@ function App() {
             };
             setUser(userData);
             localStorage.setItem('user_data', JSON.stringify(userData));
-            navigate('/');
+            navigate('/tours');
         } catch (e) {
             showAlert(e.response?.data?.message || 'Ошибка входа');
         }
@@ -88,7 +88,7 @@ function App() {
     const handleLogout = () => {
         setUser(null);
         localStorage.removeItem('user_data');
-        navigate('/');
+        navigate('/login');
     };
 
     const handleBuyTour = async (tourId) => {
@@ -159,13 +159,12 @@ function App() {
     };
 
     return (
-        <div className="p-3 min-h-screen bg-gray-50">
-            <nav className="bg-theme h-16 rounded-md flex flex-row items-center justify-between px-6 shadow-md mb-4">
-                <div className="flex items-center">
-                    <div className="text-white font-bold text-lg mr-6">Travel Agency</div>
-                    <LinkCustom to="/">Туры</LinkCustom>
+        <div className="app-container">
+            <nav className="navbar">
+                <div className="nav-left">
+                    <div className="nav-logo">Travel Agency</div>
+                    <LinkCustom to="/tours">Туры</LinkCustom>
 
-                    {/* --- ИЗМЕНЕНО: Ссылки для агента --- */}
                     {user?.role === 'agent' && (
                         <>
                             <LinkCustom to="/users">Пользователи</LinkCustom>
@@ -173,18 +172,18 @@ function App() {
                         </>
                     )}
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="nav-right">
                     {user ? (
                         <>
                             {user.role === 'customer' && (
                                 <>
-                                    <div className="text-white text-right leading-tight mr-2 hidden md:block">
-                                        <div className="text-accent text-sm font-bold">{user.balance} ₽</div>
+                                    <div className="nav-balance">
+                                        {user.balance} ₽
                                     </div>
                                     <LinkCustom to="/profile">Кабинет</LinkCustom>
                                 </>
                             )}
-                            <Button onClick={handleLogout} className="bg-accent text-theme hover:bg-accent-hover py-1 text-sm font-bold">Выйти</Button>
+                            <Button onClick={handleLogout} className="btn-logout">Выйти</Button>
                         </>
                     ) : (
                         <>
@@ -196,7 +195,8 @@ function App() {
             </nav>
 
             <Routes>
-                <Route path="/" element={
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/tours" element={
                     <ToursPage
                         tours={tours}
                         user={user}
@@ -210,20 +210,19 @@ function App() {
                 <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
 
                 <Route path="/profile" element={
-                    user ? <ProfilePage userToken={user.token} /> : <div className="text-center mt-10">Пожалуйста, войдите в систему</div>
+                    user ? <ProfilePage userToken={user.token} /> : <div style={{textAlign: 'center', marginTop: '2.5rem'}}>Пожалуйста, войдите в систему</div>
                 } />
 
-                {/* --- НОВЫЕ РОУТЫ АГЕНТА --- */}
                 <Route path="/users" element={
                     user?.role === 'agent' ?
                         <AgentDashboard onAddBalance={handleAddBalance} /> :
-                        <div className="text-center mt-10">Доступ запрещен</div>
+                        <div style={{textAlign: 'center', marginTop: '2.5rem'}}>Доступ запрещен</div>
                 } />
 
                 <Route path="/orders" element={
                     user?.role === 'agent' ?
                         <OrdersPage orders={orders} /> :
-                        <div className="text-center mt-10">Доступ запрещен</div>
+                        <div style={{textAlign: 'center', marginTop: '2.5rem'}}>Доступ запрещен</div>
                 } />
             </Routes>
 

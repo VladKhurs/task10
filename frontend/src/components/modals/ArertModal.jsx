@@ -10,23 +10,22 @@ export default function AlertModal({ isVisible, setIsVisible, alertText }) {
             onClick={() => {
                 setIsVisible(false);
             }}
-            className="fixed transition inset-0 flex backdrop-blur-sm items-center justify-center bg-gray-medium/50 z-50"
+            className="modal-backdrop"
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white p-6 rounded-lg shadow-xl relative pt-9 flex flex-col min-w-[300px]"
+                className="modal-content"
+                style={{textAlign: 'center', paddingTop: '2.5rem'}}
             >
                 <X
-                    className={"absolute top-2 right-2"}
                     onClick={() => {
                         setIsVisible(false);
                     }}
                 />
 
-                <h3 className="text-xl font-semibold mb-6 text-center mt-2">{alertText}</h3>
+                <h3 style={{marginBottom: '1.5rem', fontSize: '1.25rem', fontWeight: 600, color: 'var(--theme)'}}>{alertText}</h3>
 
                 <Button
-                    className="mt-2"
                     onClick={() => { setIsVisible(false); }}
                 >
                     Закрыть

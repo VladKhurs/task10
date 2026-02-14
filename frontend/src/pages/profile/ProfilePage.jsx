@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosConfig';
-import { formatDate } from '../../utils/formatters';
 
 export default function ProfilePage({ userToken }) {
     const [profileData, setProfileData] = useState(null);
@@ -25,25 +24,24 @@ export default function ProfilePage({ userToken }) {
         }
     }, [userToken]);
 
-    if (loading) return <div className="p-10 text-center">Загрузка...</div>;
-    if (!profileData) return <div className="p-10 text-center">Не удалось загрузить данные</div>;
+    if (loading) return <div style={{padding: '2.5rem', textAlign: 'center'}}>Загрузка...</div>;
+    if (!profileData) return <div style={{padding: '2.5rem', textAlign: 'center'}}>Не удалось загрузить данные</div>;
 
-    const { user, orders } = profileData;
+    const { user } = profileData;
 
     return (
-        <div className="max-w-4xl mx-auto mt-8 p-4">
-            <h1 className="text-3xl font-bold text-theme mb-6">Личный кабинет</h1>
+        <div className="container" style={{marginTop: '2rem'}}>
+            <h1 className="page-title">Личный кабинет</h1>
 
-            {/* Карточка пользователя */}
-            <div className="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div className="profile-card">
                 <div>
-                    <h2 className="text-2xl font-semibold mb-2">{user.surname} {user.name} {user.patronymic}</h2>
-                    <p className="text-gray-600">Email: {user.email}</p>
-                    <p className="text-gray-600">Телефон: {user.phone || 'Не указан'}</p>
+                    <h2 style={{fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem'}}>{user.surname} {user.name} {user.patronymic}</h2>
+                    <p style={{color: 'var(--text-light)', marginBottom: '0.25rem'}}>Email: {user.email}</p>
+                    <p style={{color: 'var(--text-light)'}}>Телефон: {user.phone || 'Не указан'}</p>
                 </div>
-                <div className="mt-4 md:mt-0 text-right bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <p className="text-sm text-gray-500 mb-1">Ваш баланс</p>
-                    <p className="text-3xl font-bold text-accent text-theme">{user.balance} ₽</p>
+                <div className="balance-box">
+                    <p style={{fontSize: '0.875rem', color: 'var(--text-light)', marginBottom: '0.25rem'}}>Ваш баланс</p>
+                    <p className="balance-amount">{user.balance} ₽</p>
                 </div>
             </div>
         </div>

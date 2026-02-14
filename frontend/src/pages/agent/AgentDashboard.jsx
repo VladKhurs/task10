@@ -6,7 +6,6 @@ export default function AgentDashboard({ onAddBalance }) {
     const [users, setUsers] = useState([]);
     const [topUpAmounts, setTopUpAmounts] = useState({});
 
-    // Загрузка пользователей
     const fetchUsers = async () => {
         try {
             const token = JSON.parse(localStorage.getItem('user_data'))?.token;
@@ -14,7 +13,6 @@ export default function AgentDashboard({ onAddBalance }) {
                 headers: { Authorization: token }
             });
             
-            // --- ИЗМЕНЕНО: Фильтруем, оставляем только role === 'customer' ---
             const customersOnly = res.data.filter(u => u.role === 'customer');
             setUsers(customersOnly);
             
@@ -38,44 +36,45 @@ export default function AgentDashboard({ onAddBalance }) {
         await onAddBalance({ userId: user.id, amount: parseFloat(amount) });
         
         setTopUpAmounts(prev => ({ ...prev, [user.id]: "" }));
-        fetchUsers(); // Обновляем баланс в таблице
+        fetchUsers();
     };
 
     return (
-        <div className="p-4 max-w-7xl mx-auto space-y-10">
-            <div className="bg-white p-6 rounded shadow">
-                <h2 className="text-2xl font-bold mb-6 text-theme">Управление пользователями</h2>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm border-collapse">
-                        <thead className="bg-theme text-white uppercase">
+        <div className="container" style={{marginTop: '2rem'}}>
+            <div style={{backgroundColor: 'var(--white)', padding: '1.5rem', borderRadius: '8px', boxShadow: 'var(--shadow)'}}>
+                <h2 className="page-title">Управление пользователями</h2>
+                <div className="table-wrapper">
+                    <table className="data-table">
+                        <thead>
                             <tr>
-                                <th className="p-3 rounded-tl-lg">ID</th>
-                                <th className="p-3">ФИО</th>
-                                <th className="p-3">Email / Телефон</th>
-                                <th className="p-3">Текущий баланс</th>
-                                <th className="p-3 rounded-tr-lg">Пополнить</th>
+                                <th>ID</th>
+                                <th>ФИО</th>
+                                <th>Email / Телефон</th>
+                                <th>Текущий баланс</th>
+                                <th>Пополнить</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody>
                             {users.map(user => (
-                                <tr key={user.id} className="hover:bg-gray-50 transition">
-                                    <td className="p-3 font-bold text-gray-500">#{user.id}</td>
-                                    <td className="p-3">
-                                        <div className="font-semibold">{user.surname} {user.name} {user.patronymic}</div>
+                                <tr key={user.id}>
+                                    <td style={{fontWeight: 'bold', color: 'var(--text-light)'}}>#{user.id}</td>
+                                    <td>
+                                        <div style={{fontWeight: 600}}>{user.surname} {user.name} {user.patronymic}</div>
                                     </td>
-                                    <td className="p-3">
+                                    <td>
                                         <div>{user.email}</div>
-                                        <div className="text-xs text-gray-500">{user.phone || "Нет телефона"}</div>
+                                        <div style={{fontSize: '0.75rem', color: 'var(--text-light)'}}>{user.phone || "Нет телефона"}</div>
                                     </td>
-                                    <td className="p-3 text-lg font-bold text-theme">
+                                    <td style={{fontSize: '1.125rem', fontWeight: 'bold', color: 'var(--theme)'}}>
                                         {user.balance} ₽
                                     </td>
-                                    <td className="p-3">
-                                        <div className="flex items-center gap-2">
+                                    <td>
+                                        <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
                                             <input 
                                                 type="number" 
                                                 placeholder="Сумма" 
-                                                className="border border-gray-300 rounded px-2 py-1 w-24 focus:outline-theme"
+                                                className="input-field"
+                                                style={{width: '100px', padding: '0.25rem 0.5rem'}}
                                                 value={topUpAmounts[user.id] || ""}
                                                 onChange={(e) => {
                                                     const value  = e.target.value
@@ -89,7 +88,8 @@ export default function AgentDashboard({ onAddBalance }) {
                                             />
                                             <Button 
                                                 onClick={() => handleTopUpClick(user)}
-                                                className="py-1 px-3 text-xs bg-green-600 hover:bg-green-700"
+                                                className="btn-success"
+                                                style={{padding: '0.25rem 0.75rem', fontSize: '0.75rem'}}
                                             >
                                                 Пополнить
                                             </Button>
@@ -99,7 +99,7 @@ export default function AgentDashboard({ onAddBalance }) {
                             ))}
                             {users.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="p-4 text-center text-gray-500">Нет пользователей</td>
+                                    <td colSpan="5" style={{padding: '1rem', textAlign: 'center', color: 'var(--text-light)'}}>Нет пользователей</td>
                                 </tr>
                             )}
                         </tbody>

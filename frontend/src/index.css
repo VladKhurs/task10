@@ -1,6 +1,31 @@
 @import url("./reset.css");
 @import url("./App.css");
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
+:root {
+  --theme: #2e0228;
+  --theme-hover: #4a0440;
+  --accent: #00ff9d;
+  --accent-hover: #5effc4;
+  --gray-light: #fdf2f8;
+  --gray-medium: #9d5c88;
+  --white: #ffffff;
+  --black: #000000;
+  --text-main: #333333;
+  --text-light: #666666;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --bg-body: #f8fafc;
+  --border-color: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+}

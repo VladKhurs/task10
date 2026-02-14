@@ -1,24 +1,23 @@
 import React from 'react';
-import { formatDateTime } from '../../utils/formatters'; // <-- ИЗМЕНЕН ИМПОРТ
+import { formatDateTime } from '../../utils/formatters';
 
 export default function OrdersPage({ orders }) {
-    console.log('orders', orders);
     return (
-        <div className="p-4 max-w-7xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6 text-theme">Все заказы агентства</h2>
-            <div className="overflow-x-auto bg-white rounded shadow">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-100 uppercase text-gray-600 border-b-2 border-gray-200">
+        <div className="container" style={{marginTop: '2rem'}}>
+            <h2 className="page-title">Все заказы агентства</h2>
+            <div className="table-wrapper">
+                <table className="data-table">
+                    <thead>
                         <tr>
-                            <th className="p-3">ID</th>
-                            <th className="p-3">Тур</th>
-                            <th className="p-3">Клиент (ФИО)</th>
-                            <th className="p-3">Телефон</th>
-                            <th className="p-3">Стоимость</th>
-                            <th className="p-3">Дата и Время</th> {/* <-- Заголовок */}
+                            <th>ID</th>
+                            <th>Тур</th>
+                            <th>Клиент (ФИО)</th>
+                            <th>Телефон</th>
+                            <th>Стоимость</th>
+                            <th>Дата и Время</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody>
                         {orders.map(order => {
                             const clientName = order.user 
                                 ? `${order.user.surname || ''} ${order.user.name || ''} ${order.user.patronymic || ''}`.trim() 
@@ -27,31 +26,34 @@ export default function OrdersPage({ orders }) {
                             const price = order.tour?.discountPrice || order.tour?.price;
 
                             return (
-                                <tr key={order.id} className="hover:bg-gray-50">
-                                    <td className="p-3 text-gray-500">#{order.id}</td>
-                                    <td className="p-3">
-                                        <span className="font-semibold block">{order.tour?.name}</span>
-                                        <span className="text-xs text-gray-500">{order.tour?.origin} &rarr; {order.tour?.destination}</span>
+                                <tr key={order.id}>
+                                    <td style={{color: 'var(--text-light)'}}>#{order.id}</td>
+                                    <td>
+                                        <span style={{fontWeight: 600, display: 'block'}}>{order.tour?.name}</span>
+                                        <span style={{fontSize: '0.75rem', color: 'var(--text-light)'}}>{order.tour?.origin} &rarr; {order.tour?.destination}</span>
                                     </td>
-                                    <td className="p-3 font-medium text-gray-800">
+                                    <td style={{fontWeight: 500}}>
                                         {clientName || `ID: ${order.user?.id}`}
                                     </td>
-                                    <td className="p-3 whitespace-nowrap">
+                                    <td style={{whiteSpace: 'nowrap'}}>
                                         {clientPhone}
                                     </td>
-                                    <td className="p-3 font-bold text-theme">
+                                    <td style={{fontWeight: 'bold', color: 'var(--theme)'}}>
                                         {price} ₽
                                     </td>
-                                    {/* --- ИСПОЛЬЗУЕМ formatDateTime --- */}
-                                    <td className="p-3 text-gray-700 whitespace-nowrap">
+                                    <td style={{whiteSpace: 'nowrap'}}>
                                         {formatDateTime(order.createdAt)}
                                     </td>
                                 </tr>
                             );
                         })}
+                        {orders.length === 0 && (
+                            <tr>
+                                <td colSpan="6" style={{padding: '1.5rem', textAlign: 'center', color: 'var(--text-light)'}}>Заказов пока нет</td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
-                {orders.length === 0 && <div className="p-6 text-center text-gray-500">Заказов пока нет</div>}
             </div>
         </div>
     );
