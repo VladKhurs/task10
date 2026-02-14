@@ -44,7 +44,6 @@ export default defineConfig([
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-
 ---
 .\package.json
 {
@@ -70,17 +69,13 @@ export default defineConfig([
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "^10.4.22",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.18",
     "vite": "^7.2.4"
   }
 }
-
 ---
 .\postcss.config.js
 export default {
@@ -125,16 +120,443 @@ export default defineConfig({
 
 ---
 .\src\App.css
-#root {
-    margin: 0 auto;
-    text-align: center;
-    max-width: screen;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
+.app-container {
+  min-height: 100vh;
+  background-color: var(--bg-body);
+  padding-bottom: 2rem;
+}
+
+.navbar {
+  background-color: var(--theme);
+  color: var(--white);
+  padding: 0 1.5rem;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.5rem;
+  border-radius: 0 0 4px 4px;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.nav-logo {
+  font-weight: bold;
+  font-size: 1.125rem;
+  margin-right: 1rem;
+  color: var(--white);
+  text-decoration: none;
+}
+
+.nav-link {
+  color: var(--gray-light);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+  margin: 0 0.5rem;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  color: var(--accent-hover);
+}
+
+.nav-link.active {
+  color: var(--accent);
+}
+
+.nav-balance {
+  color: var(--accent);
+  font-weight: bold;
+  font-size: 0.875rem;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+}
+
+.btn {
+  background-color: var(--theme);
+  color: var(--white);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: 500;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:hover {
+  background-color: var(--theme-hover);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.btn-logout {
+  background-color: var(--accent);
+  color: var(--theme);
+}
+
+.btn-logout:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-success {
+  background-color: var(--success);
+}
+
+.btn-danger {
+  background-color: var(--danger);
+}
+
+.btn-blue {
+  background-color: #2563eb;
+}
+
+.input-field {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  outline: none;
+  color: var(--text-main);
+  background-color: var(--white);
+  transition: border-color 0.2s;
+}
+
+.input-field:focus {
+  border-color: var(--theme);
+}
+
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2.5rem;
+  padding: 0 1rem;
+}
+
+.auth-box {
+  background-color: var(--white);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.tour-card {
+  background-color: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.tour-card:hover {
+  transform: translateY(-2px);
+}
+
+.hot-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: var(--danger);
+  color: var(--white);
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.tour-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--theme);
+  margin-bottom: 0.5rem;
+}
+
+.tour-info p {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
+}
+
+.tour-type {
+  font-style: italic;
+  color: var(--gray-medium);
+}
+
+.tour-price-block {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.price-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.price-current {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--theme);
+}
+
+.price-old {
+  font-size: 0.875rem;
+  text-decoration: line-through;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.table-wrapper {
+  background-color: var(--white);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+  min-width: 600px; 
+}
+
+.data-table th {
+  background-color: var(--theme);
+  color: var(--white);
+  padding: 0.75rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.data-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.data-table tr:hover {
+  background-color: var(--gray-light);
+}
+
+.profile-card {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.balance-box {
+  background-color: var(--bg-body);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  text-align: right;
+  min-width: 150px;
+}
+
+.balance-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--theme);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(157, 92, 136, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal-content {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 450px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0.25rem;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.close-btn:hover {
+  color: var(--danger);
+}
+
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-row > div, .input-row > input {
+  width: 100%;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: var(--theme);
+  margin-bottom: 1.5rem;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-wrapper input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--theme);
+  cursor: pointer;
+}
+
+.select-field {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  outline: none;
+  background-color: var(--white);
+  color: var(--text-main);
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    justify-content: center;
+    padding: 1rem;
+  }
+  
+  .nav-left, .nav-right {
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .profile-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .balance-box {
+    width: 100%;
+    text-align: left;
+  }
+}
+
+@media (max-width: 400px) {
+  .navbar {
+    padding: 0.5rem;
+  }
+
+  .nav-link {
+    margin: 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  .tours-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .input-row {
+    flex-direction: column;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+  }
+  
+  .auth-box {
+    padding: 1.25rem;
+  }
+  
+  .data-table {
+    font-size: 0.75rem;
+  }
+  
+  .tour-card {
+    padding: 1rem;
+  }
+}
 ---
 .\src\App.jsx
 import React, { useEffect, useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import api from "./api/axiosConfig";
 import LinkCustom from "./components/ui/LinkCustom";
 import Button from "./components/ui/Button";
@@ -143,7 +565,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ToursPage from "./pages/tours/ToursPage";
 import AgentDashboard from "./pages/agent/AgentDashboard";
-import OrdersPage from "./pages/orders/OrdersPage"; // <-- ИМПОРТ НОВОЙ СТРАНИЦЫ
+import OrdersPage from "./pages/orders/OrdersPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import AlertModal from "./components/modals/ArertModal";
 
@@ -214,7 +636,7 @@ function App() {
             };
             setUser(userData);
             localStorage.setItem('user_data', JSON.stringify(userData));
-            navigate('/');
+            navigate('/tours');
         } catch (e) {
             showAlert(e.response?.data?.message || 'Ошибка входа');
         }
@@ -223,7 +645,7 @@ function App() {
     const handleLogout = () => {
         setUser(null);
         localStorage.removeItem('user_data');
-        navigate('/');
+        navigate('/login');
     };
 
     const handleBuyTour = async (tourId) => {
@@ -294,13 +716,12 @@ function App() {
     };
 
     return (
-        <div className="p-3 min-h-screen bg-gray-50">
-            <nav className="bg-theme h-16 rounded-md flex flex-row items-center justify-between px-6 shadow-md mb-4">
-                <div className="flex items-center">
-                    <div className="text-white font-bold text-lg mr-6">Travel Agency</div>
-                    <LinkCustom to="/">Туры</LinkCustom>
+        <div className="app-container">
+            <nav className="navbar">
+                <div className="nav-left">
+                    <div className="nav-logo">Турагенство</div>
+                    <LinkCustom to="/tours">Туры</LinkCustom>
 
-                    {/* --- ИЗМЕНЕНО: Ссылки для агента --- */}
                     {user?.role === 'agent' && (
                         <>
                             <LinkCustom to="/users">Пользователи</LinkCustom>
@@ -308,18 +729,18 @@ function App() {
                         </>
                     )}
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="nav-right">
                     {user ? (
                         <>
                             {user.role === 'customer' && (
                                 <>
-                                    <div className="text-white text-right leading-tight mr-2 hidden md:block">
-                                        <div className="text-accent text-sm font-bold">{user.balance} ₽</div>
+                                    <div className="nav-balance">
+                                        {user.balance} BYN
                                     </div>
                                     <LinkCustom to="/profile">Кабинет</LinkCustom>
                                 </>
                             )}
-                            <Button onClick={handleLogout} className="bg-accent text-theme hover:bg-accent-hover py-1 text-sm font-bold">Выйти</Button>
+                            <Button onClick={handleLogout} className="btn-logout">Выйти</Button>
                         </>
                     ) : (
                         <>
@@ -331,7 +752,8 @@ function App() {
             </nav>
 
             <Routes>
-                <Route path="/" element={
+                <Route path="/" element={<Navigate to="/tours" replace />} />
+                <Route path="/tours" element={
                     <ToursPage
                         tours={tours}
                         user={user}
@@ -345,20 +767,19 @@ function App() {
                 <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
 
                 <Route path="/profile" element={
-                    user ? <ProfilePage userToken={user.token} /> : <div className="text-center mt-10">Пожалуйста, войдите в систему</div>
+                    user ? <ProfilePage userToken={user.token} /> : <div style={{textAlign: 'center', marginTop: '2.5rem'}}>Пожалуйста, войдите в систему</div>
                 } />
 
-                {/* --- НОВЫЕ РОУТЫ АГЕНТА --- */}
                 <Route path="/users" element={
                     user?.role === 'agent' ?
                         <AgentDashboard onAddBalance={handleAddBalance} /> :
-                        <div className="text-center mt-10">Доступ запрещен</div>
+                        <div style={{textAlign: 'center', marginTop: '2.5rem'}}>Доступ запрещен</div>
                 } />
 
                 <Route path="/orders" element={
                     user?.role === 'agent' ?
                         <OrdersPage orders={orders} /> :
-                        <div className="text-center mt-10">Доступ запрещен</div>
+                        <div style={{textAlign: 'center', marginTop: '2.5rem'}}>Доступ запрещен</div>
                 } />
             </Routes>
 
@@ -383,11 +804,35 @@ export default App;
 .\src\index.css
 @import url("./reset.css");
 @import url("./App.css");
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
+:root {
+  --theme: #2e0228;
+  --theme-hover: #4a0440;
+  --accent: #00ff9d;
+  --accent-hover: #5effc4;
+  --gray-light: #fdf2f8;
+  --gray-medium: #9d5c88;
+  --white: #ffffff;
+  --black: #000000;
+  --text-main: #333333;
+  --text-light: #666666;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --bg-body: #f8fafc;
+  --border-color: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
 
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+}
 ---
 .\src\main.jsx
 import { StrictMode } from "react";
@@ -403,7 +848,6 @@ createRoot(document.getElementById("root")).render(
         </BrowserRouter>
     </StrictMode>
 );
-
 ---
 .\src\reset.css
 *,
@@ -492,23 +936,22 @@ export default function AlertModal({ isVisible, setIsVisible, alertText }) {
             onClick={() => {
                 setIsVisible(false);
             }}
-            className="fixed transition inset-0 flex backdrop-blur-sm items-center justify-center bg-gray-medium/50 z-50"
+            className="modal-backdrop"
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white p-6 rounded-lg shadow-xl relative pt-9 flex flex-col min-w-[300px]"
+                className="modal-content"
+                style={{textAlign: 'center', paddingTop: '2.5rem'}}
             >
                 <X
-                    className={"absolute top-2 right-2"}
                     onClick={() => {
                         setIsVisible(false);
                     }}
                 />
 
-                <h3 className="text-xl font-semibold mb-6 text-center mt-2">{alertText}</h3>
+                <h3 style={{marginBottom: '1.5rem', fontSize: '1.25rem', fontWeight: 600, color: 'var(--theme)'}}>{alertText}</h3>
 
                 <Button
-                    className="mt-2"
                     onClick={() => { setIsVisible(false); }}
                 >
                     Закрыть
@@ -525,7 +968,6 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import X from '../ui/X';
 
-// Список доступных типов туров
 const TOUR_TYPES = [
     "Отдых",
     "Экскурсия",
@@ -538,15 +980,13 @@ export default function TourModal({ isVisible, setIsVisible, onSubmit, initialDa
     useEffect(() => {
         if (isVisible) {
             if (initialData) {
-                // Если редактирование — заполняем поля
                 Object.keys(initialData).forEach(key => {
                     setValue(key, initialData[key]);
                 });
             } else {
-                // Если создание — сбрасываем форму
                 reset({ 
                     isHot: false, 
-                    tour_type: "" // Сбрасываем селект в дефолтное состояние
+                    tour_type: "" 
                 });
             }
         }
@@ -555,21 +995,22 @@ export default function TourModal({ isVisible, setIsVisible, onSubmit, initialDa
     if (!isVisible) return null;
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-medium/50 backdrop-blur-sm z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative max-h-[90vh] overflow-y-auto">
-                <X className="absolute top-2 right-2" onClick={() => setIsVisible(false)} />
-                <h3 className="text-xl font-bold mb-4">{initialData ? 'Редактировать тур' : 'Создать тур'}</h3>
+        <div className="modal-backdrop">
+            <div className="modal-content">
+                <X onClick={() => setIsVisible(false)} />
+                <h3 className="page-title" style={{fontSize: '1.25rem', marginBottom: '1rem'}}>
+                    {initialData ? 'Редактировать тур' : 'Создать тур'}
+                </h3>
                 
-                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+                <form onSubmit={handleSubmit(onSubmit)} className="form-group">
                     <Input register={register} name="name" placeholder="Название тура" options={{ required: true }} />
                     <Input register={register} name="origin" placeholder="Место отправления" options={{ required: true }} />
                     <Input register={register} name="destination" placeholder="Место назначения" options={{ required: true }} />
                     
-                    {/* --- ВЫПАДАЮЩИЙ СПИСОК ВМЕСТО INPUT --- */}
                     <div>
                         <select
                             {...register("tour_type", { required: true })}
-                            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-theme bg-white text-gray-700"
+                            className="select-field"
                             defaultValue=""
                         >
                             <option value="" disabled>Выберите тип тура</option>
@@ -581,28 +1022,28 @@ export default function TourModal({ isVisible, setIsVisible, onSubmit, initialDa
                         </select>
                     </div>
                     
-                    <div className="flex gap-2">
-                        <div className="w-1/2">
-                            <label className="text-xs text-gray-500 ml-1">Дата начала</label>
+                    <div className="input-row">
+                        <div>
+                            <label style={{fontSize: '0.75rem', color: 'var(--text-light)', marginLeft: '0.25rem'}}>Дата начала</label>
                             <Input register={register} type="date" name="dateStart" options={{ required: true }} />
                         </div>
-                        <div className="w-1/2">
-                            <label className="text-xs text-gray-500 ml-1">Дата конца</label>
+                        <div>
+                            <label style={{fontSize: '0.75rem', color: 'var(--text-light)', marginLeft: '0.25rem'}}>Дата конца</label>
                             <Input register={register} type="date" name="dateEnd" options={{ required: true }} />
                         </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="input-row">
                          <Input register={register} type="number" name="price" placeholder="Цена" options={{ required: true }} />
                          <Input register={register} type="number" name="discountPrice" placeholder="Цена со скидкой" />
                     </div>
 
-                    <div className="flex items-center gap-2 mt-2">
-                        <input type="checkbox" {...register('isHot')} id="isHot" className="w-4 h-4 accent-theme" />
-                        <label htmlFor="isHot" className="select-none cursor-pointer">Горящий тур</label>
+                    <div className="checkbox-wrapper">
+                        <input type="checkbox" {...register('isHot')} id="isHot" />
+                        <label htmlFor="isHot">Горящий тур</label>
                     </div>
 
-                    <Button type="submit" className="mt-4">Сохранить</Button>
+                    <Button type="submit" style={{marginTop: '1rem', width: '100%'}}>Сохранить</Button>
                 </form>
             </div>
         </div>
@@ -618,7 +1059,7 @@ export default function Button({ children, onClick, className = '', type = 'butt
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`bg-theme text-white px-4 py-2 rounded hover:bg-theme-hover transition disabled:opacity-50 ${className}`}
+            className={`btn ${className}`}
         >
             {children}
         </button>
@@ -634,7 +1075,7 @@ export default function Input({ register, name, options, placeholder, type = 'te
             {...register(name, options)}
             type={type}
             placeholder={placeholder}
-            className={`border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-theme ${className}`}
+            className={`input-field ${className}`}
         />
     );
 }
@@ -650,9 +1091,7 @@ export default function LinkCustom({ to, children }) {
     return (
         <Link
             to={to}
-            className={`mx-2 font-bold transition ${
-                isActive ? 'text-accent' : 'text-gray-light hover:text-accent-hover'
-            }`}
+            className={`nav-link ${isActive ? 'active' : ''}`}
         >
             {children}
         </Link>
@@ -664,7 +1103,10 @@ import React from 'react';
 
 export default function X({ onClick, className = '' }) {
     return (
-        <button onClick={onClick} className={`font-bold text-gray-500 hover:text-red-500 ${className}`}>
+        <button 
+            onClick={onClick} 
+            className={`close-btn ${className}`}
+        >
             &#10005;
         </button>
     );
@@ -679,7 +1121,6 @@ export default function AgentDashboard({ onAddBalance }) {
     const [users, setUsers] = useState([]);
     const [topUpAmounts, setTopUpAmounts] = useState({});
 
-    // Загрузка пользователей
     const fetchUsers = async () => {
         try {
             const token = JSON.parse(localStorage.getItem('user_data'))?.token;
@@ -687,7 +1128,6 @@ export default function AgentDashboard({ onAddBalance }) {
                 headers: { Authorization: token }
             });
             
-            // --- ИЗМЕНЕНО: Фильтруем, оставляем только role === 'customer' ---
             const customersOnly = res.data.filter(u => u.role === 'customer');
             setUsers(customersOnly);
             
@@ -711,44 +1151,45 @@ export default function AgentDashboard({ onAddBalance }) {
         await onAddBalance({ userId: user.id, amount: parseFloat(amount) });
         
         setTopUpAmounts(prev => ({ ...prev, [user.id]: "" }));
-        fetchUsers(); // Обновляем баланс в таблице
+        fetchUsers();
     };
 
     return (
-        <div className="p-4 max-w-7xl mx-auto space-y-10">
-            <div className="bg-white p-6 rounded shadow">
-                <h2 className="text-2xl font-bold mb-6 text-theme">Управление пользователями</h2>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm border-collapse">
-                        <thead className="bg-theme text-white uppercase">
+        <div className="container" style={{marginTop: '2rem'}}>
+            <div style={{backgroundColor: 'var(--white)', padding: '1.5rem', borderRadius: '8px', boxShadow: 'var(--shadow)'}}>
+                <h2 className="page-title">Управление пользователями</h2>
+                <div className="table-wrapper">
+                    <table className="data-table">
+                        <thead>
                             <tr>
-                                <th className="p-3 rounded-tl-lg">ID</th>
-                                <th className="p-3">ФИО</th>
-                                <th className="p-3">Email / Телефон</th>
-                                <th className="p-3">Текущий баланс</th>
-                                <th className="p-3 rounded-tr-lg">Пополнить</th>
+                                <th>ID</th>
+                                <th>ФИО</th>
+                                <th>Email / Телефон</th>
+                                <th>Текущий баланс</th>
+                                <th>Пополнить</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody>
                             {users.map(user => (
-                                <tr key={user.id} className="hover:bg-gray-50 transition">
-                                    <td className="p-3 font-bold text-gray-500">#{user.id}</td>
-                                    <td className="p-3">
-                                        <div className="font-semibold">{user.surname} {user.name} {user.patronymic}</div>
+                                <tr key={user.id}>
+                                    <td style={{fontWeight: 'bold', color: 'var(--text-light)'}}>#{user.id}</td>
+                                    <td>
+                                        <div style={{fontWeight: 600}}>{user.surname} {user.name} {user.patronymic}</div>
                                     </td>
-                                    <td className="p-3">
+                                    <td>
                                         <div>{user.email}</div>
-                                        <div className="text-xs text-gray-500">{user.phone || "Нет телефона"}</div>
+                                        <div style={{fontSize: '0.75rem', color: 'var(--text-light)'}}>{user.phone || "Нет телефона"}</div>
                                     </td>
-                                    <td className="p-3 text-lg font-bold text-theme">
-                                        {user.balance} ₽
+                                    <td style={{fontSize: '1.125rem', fontWeight: 'bold', color: 'var(--theme)'}}>
+                                        {user.balance} BYN
                                     </td>
-                                    <td className="p-3">
-                                        <div className="flex items-center gap-2">
+                                    <td>
+                                        <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
                                             <input 
                                                 type="number" 
                                                 placeholder="Сумма" 
-                                                className="border border-gray-300 rounded px-2 py-1 w-24 focus:outline-theme"
+                                                className="input-field"
+                                                style={{width: '100px', padding: '0.25rem 0.5rem'}}
                                                 value={topUpAmounts[user.id] || ""}
                                                 onChange={(e) => {
                                                     const value  = e.target.value
@@ -762,7 +1203,8 @@ export default function AgentDashboard({ onAddBalance }) {
                                             />
                                             <Button 
                                                 onClick={() => handleTopUpClick(user)}
-                                                className="py-1 px-3 text-xs bg-green-600 hover:bg-green-700"
+                                                className="btn-success"
+                                                style={{padding: '0.25rem 0.75rem', fontSize: '0.75rem'}}
                                             >
                                                 Пополнить
                                             </Button>
@@ -772,7 +1214,7 @@ export default function AgentDashboard({ onAddBalance }) {
                             ))}
                             {users.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="p-4 text-center text-gray-500">Нет пользователей</td>
+                                    <td colSpan="5" style={{padding: '1rem', textAlign: 'center', color: 'var(--text-light)'}}>Нет пользователей</td>
                                 </tr>
                             )}
                         </tbody>
@@ -793,10 +1235,10 @@ export default function LoginPage({ onLogin }) {
     const { register, handleSubmit } = useForm();
 
     return (
-        <div className="flex flex-col items-center mt-10">
-            <div className="bg-white p-8 rounded shadow-md w-96">
-                <h2 className="text-2xl font-bold mb-6 text-theme">Вход</h2>
-                <form onSubmit={handleSubmit(onLogin)} className="flex flex-col gap-4">
+        <div className="auth-container">
+            <div className="auth-box">
+                <h2 className="page-title" style={{textAlign: 'center'}}>Вход</h2>
+                <form onSubmit={handleSubmit(onLogin)} className="form-group">
                     <Input register={register} name="email" placeholder="Email" options={{ required: true }} />
                     <Input register={register} name="password" type="password" placeholder="Пароль" options={{ required: true }} />
                     <Button type="submit">Войти</Button>
@@ -816,10 +1258,10 @@ export default function RegisterPage({ onRegister }) {
     const { register, handleSubmit } = useForm();
 
     return (
-        <div className="flex flex-col items-center mt-10">
-            <div className="bg-white p-8 rounded shadow-md w-96">
-                <h2 className="text-2xl font-bold mb-6 text-theme">Регистрация</h2>
-                <form onSubmit={handleSubmit(onRegister)} className="flex flex-col gap-4">
+        <div className="auth-container">
+            <div className="auth-box">
+                <h2 className="page-title" style={{textAlign: 'center'}}>Регистрация</h2>
+                <form onSubmit={handleSubmit(onRegister)} className="form-group">
                     <Input register={register} name="email" placeholder="Email" options={{ required: true }} />
                     <Input register={register} name="password" type="password" placeholder="Пароль" options={{ required: true }} />
                     <Input register={register} name="name" placeholder="Имя" />
@@ -847,26 +1289,25 @@ export default function ClientsPage() {
 ---
 .\src\pages\orders\OrdersPage.jsx
 import React from 'react';
-import { formatDateTime } from '../../utils/formatters'; // <-- ИЗМЕНЕН ИМПОРТ
+import { formatDateTime } from '../../utils/formatters';
 
 export default function OrdersPage({ orders }) {
-    console.log('orders', orders);
     return (
-        <div className="p-4 max-w-7xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6 text-theme">Все заказы агентства</h2>
-            <div className="overflow-x-auto bg-white rounded shadow">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-100 uppercase text-gray-600 border-b-2 border-gray-200">
+        <div className="container" style={{marginTop: '2rem'}}>
+            <h2 className="page-title">Все заказы агентства</h2>
+            <div className="table-wrapper">
+                <table className="data-table">
+                    <thead>
                         <tr>
-                            <th className="p-3">ID</th>
-                            <th className="p-3">Тур</th>
-                            <th className="p-3">Клиент (ФИО)</th>
-                            <th className="p-3">Телефон</th>
-                            <th className="p-3">Стоимость</th>
-                            <th className="p-3">Дата и Время</th> {/* <-- Заголовок */}
+                            <th>ID</th>
+                            <th>Тур</th>
+                            <th>Клиент (ФИО)</th>
+                            <th>Телефон</th>
+                            <th>Стоимость</th>
+                            <th>Дата и Время</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody>
                         {orders.map(order => {
                             const clientName = order.user 
                                 ? `${order.user.surname || ''} ${order.user.name || ''} ${order.user.patronymic || ''}`.trim() 
@@ -875,31 +1316,34 @@ export default function OrdersPage({ orders }) {
                             const price = order.tour?.discountPrice || order.tour?.price;
 
                             return (
-                                <tr key={order.id} className="hover:bg-gray-50">
-                                    <td className="p-3 text-gray-500">#{order.id}</td>
-                                    <td className="p-3">
-                                        <span className="font-semibold block">{order.tour?.name}</span>
-                                        <span className="text-xs text-gray-500">{order.tour?.origin} &rarr; {order.tour?.destination}</span>
+                                <tr key={order.id}>
+                                    <td style={{color: 'var(--text-light)'}}>#{order.id}</td>
+                                    <td>
+                                        <span style={{fontWeight: 600, display: 'block'}}>{order.tour?.name}</span>
+                                        <span style={{fontSize: '0.75rem', color: 'var(--text-light)'}}>{order.tour?.origin} &rarr; {order.tour?.destination}</span>
                                     </td>
-                                    <td className="p-3 font-medium text-gray-800">
+                                    <td style={{fontWeight: 500}}>
                                         {clientName || `ID: ${order.user?.id}`}
                                     </td>
-                                    <td className="p-3 whitespace-nowrap">
+                                    <td style={{whiteSpace: 'nowrap'}}>
                                         {clientPhone}
                                     </td>
-                                    <td className="p-3 font-bold text-theme">
-                                        {price} ₽
+                                    <td style={{fontWeight: 'bold', color: 'var(--theme)'}}>
+                                        {price} BYN
                                     </td>
-                                    {/* --- ИСПОЛЬЗУЕМ formatDateTime --- */}
-                                    <td className="p-3 text-gray-700 whitespace-nowrap">
+                                    <td style={{whiteSpace: 'nowrap'}}>
                                         {formatDateTime(order.createdAt)}
                                     </td>
                                 </tr>
                             );
                         })}
+                        {orders.length === 0 && (
+                            <tr>
+                                <td colSpan="6" style={{padding: '1.5rem', textAlign: 'center', color: 'var(--text-light)'}}>Заказов пока нет</td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
-                {orders.length === 0 && <div className="p-6 text-center text-gray-500">Заказов пока нет</div>}
             </div>
         </div>
     );
@@ -908,7 +1352,6 @@ export default function OrdersPage({ orders }) {
 .\src\pages\profile\ProfilePage.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosConfig';
-import { formatDate } from '../../utils/formatters';
 
 export default function ProfilePage({ userToken }) {
     const [profileData, setProfileData] = useState(null);
@@ -933,25 +1376,24 @@ export default function ProfilePage({ userToken }) {
         }
     }, [userToken]);
 
-    if (loading) return <div className="p-10 text-center">Загрузка...</div>;
-    if (!profileData) return <div className="p-10 text-center">Не удалось загрузить данные</div>;
+    if (loading) return <div style={{padding: '2.5rem', textAlign: 'center'}}>Загрузка...</div>;
+    if (!profileData) return <div style={{padding: '2.5rem', textAlign: 'center'}}>Не удалось загрузить данные</div>;
 
-    const { user, orders } = profileData;
+    const { user } = profileData;
 
     return (
-        <div className="max-w-4xl mx-auto mt-8 p-4">
-            <h1 className="text-3xl font-bold text-theme mb-6">Личный кабинет</h1>
+        <div className="container" style={{marginTop: '2rem'}}>
+            <h1 className="page-title">Личный кабинет</h1>
 
-            {/* Карточка пользователя */}
-            <div className="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div className="profile-card">
                 <div>
-                    <h2 className="text-2xl font-semibold mb-2">{user.surname} {user.name} {user.patronymic}</h2>
-                    <p className="text-gray-600">Email: {user.email}</p>
-                    <p className="text-gray-600">Телефон: {user.phone || 'Не указан'}</p>
+                    <h2 style={{fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem'}}>{user.surname} {user.name} {user.patronymic}</h2>
+                    <p style={{color: 'var(--text-light)', marginBottom: '0.25rem'}}>Email: {user.email}</p>
+                    <p style={{color: 'var(--text-light)'}}>Телефон: {user.phone || 'Не указан'}</p>
                 </div>
-                <div className="mt-4 md:mt-0 text-right bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <p className="text-sm text-gray-500 mb-1">Ваш баланс</p>
-                    <p className="text-3xl font-bold text-accent text-theme">{user.balance} ₽</p>
+                <div className="balance-box">
+                    <p style={{fontSize: '0.875rem', color: 'var(--text-light)', marginBottom: '0.25rem'}}>Ваш баланс</p>
+                    <p className="balance-amount">{user.balance} BYN</p>
                 </div>
             </div>
         </div>
@@ -984,44 +1426,45 @@ export default function ToursPage({
     onOpenCreate 
 }) {
     return (
-        <div className="p-4">
+        <div className="container">
             {user?.role === 'agent' && (
-                <div className="mb-6 flex justify-center">
+                <div style={{display: 'flex', justifyContent: 'center', marginBottom: '1.5rem'}}>
                     <Button onClick={onOpenCreate}>+ Добавить тур</Button>
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="tours-grid">
                 {tours.map(tour => {
                     const isPurchased = user?.purchasedTourIds?.includes(tour.id);
                     const finalPrice = tour.discountPrice || tour.price;
 
                     return (
-                        <div key={tour.id} className="bg-white border rounded-lg shadow hover:shadow-lg transition p-5 relative flex flex-col h-full">
+                        <div key={tour.id} className="tour-card">
                             {tour.isHot && (
-                                <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                                <span className="hot-badge">
                                     ГОРЯЩИЙ
                                 </span>
                             )}
                             
-                            <h3 className="text-xl font-bold text-theme mb-2">{tour.name}</h3>
-                            <div className="text-sm text-gray-600 mb-4">
+                            <h3 className="tour-title">{tour.name}</h3>
+                            <div className="tour-info">
                                 <p>{tour.origin} &rarr; {tour.destination}</p>
                                 <p>{formatDate(tour.dateStart)} - {formatDate(tour.dateEnd)}</p>
-                                <p className="italic text-gray-400">{tour.tour_type}</p>
+                                <p className="tour-type">{tour.tour_type}</p>
                             </div>
 
-                            <div className="mt-auto">
-                                <div className="flex items-end gap-2 mb-4">
-                                    <span className="text-2xl font-bold text-theme">{finalPrice} ₽</span>
+                            <div className="tour-price-block">
+                                <div className="price-row">
+                                    <span className="price-current">{finalPrice} BYN</span>
                                     {tour.discountPrice && (
-                                        <span className="text-sm text-gray-400 line-through mb-1">{tour.price} ₽</span>
+                                        <span className="price-old">{tour.price} BYN</span>
                                     )}
                                 </div>
 
                                 {user?.role === 'customer' && (
                                     <Button 
-                                        className={`w-full ${isPurchased ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                        className={isPurchased ? 'btn-success' : ''}
+                                        style={{width: '100%'}}
                                         onClick={() => onBuy(tour.id)}
                                         disabled={isPurchased}
                                     >
@@ -1030,11 +1473,11 @@ export default function ToursPage({
                                 )}
 
                                 {user?.role === 'agent' && (
-                                    <div className="flex gap-2">
-                                        <Button className="w-1/2 bg-blue-600 hover:bg-blue-700" onClick={() => onEdit(tour)}>
+                                    <div className="btn-group">
+                                        <Button className="btn-blue" style={{width: '50%'}} onClick={() => onEdit(tour)}>
                                             Изменить
                                         </Button>
-                                        <Button className="w-1/2 bg-red-600 hover:bg-red-700" onClick={() => onDelete(tour.id)}>
+                                        <Button className="btn-danger" style={{width: '50%'}} onClick={() => onDelete(tour.id)}>
                                             Удалить
                                         </Button>
                                     </div>

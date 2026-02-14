@@ -2,18 +2,18 @@ import React from 'react';
 import { formatDate } from '../../utils/formatters';
 import Button from '../../components/ui/Button';
 
-export default function ToursPage({ 
-    tours, 
-    user, 
-    onBuy, 
-    onDelete, 
-    onEdit, 
-    onOpenCreate 
+export default function ToursPage({
+    tours,
+    user,
+    onBuy,
+    onDelete,
+    onEdit,
+    onOpenCreate
 }) {
     return (
         <div className="container">
             {user?.role === 'agent' && (
-                <div style={{display: 'flex', justifyContent: 'center', marginBottom: '1.5rem'}}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
                     <Button onClick={onOpenCreate}>+ Добавить тур</Button>
                 </div>
             )}
@@ -30,7 +30,7 @@ export default function ToursPage({
                                     ГОРЯЩИЙ
                                 </span>
                             )}
-                            
+
                             <h3 className="tour-title">{tour.name}</h3>
                             <div className="tour-info">
                                 <p>{tour.origin} &rarr; {tour.destination}</p>
@@ -40,16 +40,16 @@ export default function ToursPage({
 
                             <div className="tour-price-block">
                                 <div className="price-row">
-                                    <span className="price-current">{finalPrice} ₽</span>
+                                    <span className="price-current">{finalPrice} BYN</span>
                                     {tour.discountPrice && (
-                                        <span className="price-old">{tour.price} ₽</span>
+                                        <span className="price-old">{tour.price} BYN</span>
                                     )}
                                 </div>
 
                                 {user?.role === 'customer' && (
-                                    <Button 
+                                    <Button
                                         className={isPurchased ? 'btn-success' : ''}
-                                        style={{width: '100%'}}
+                                        style={{ width: '100%' }}
                                         onClick={() => onBuy(tour.id)}
                                         disabled={isPurchased}
                                     >
@@ -59,10 +59,10 @@ export default function ToursPage({
 
                                 {user?.role === 'agent' && (
                                     <div className="btn-group">
-                                        <Button className="btn-blue" style={{width: '50%'}} onClick={() => onEdit(tour)}>
+                                        <Button className="btn-blue" style={{ width: '50%' }} onClick={() => onEdit(tour)}>
                                             Изменить
                                         </Button>
-                                        <Button className="btn-danger" style={{width: '50%'}} onClick={() => onDelete(tour.id)}>
+                                        <Button className="btn-danger" style={{ width: '50%' }} onClick={() => onDelete(tour.id)}>
                                             Удалить
                                         </Button>
                                     </div>

@@ -81,7 +81,7 @@ function App() {
             localStorage.setItem('user_data', JSON.stringify(userData));
             navigate('/tours');
         } catch (e) {
-            showAlert(e.response?.data?.message || 'Ошибка входа');
+            showAlert(e.response?.data?.message || 'Неправильный логин или пароль');
         }
     };
 
@@ -162,7 +162,7 @@ function App() {
         <div className="app-container">
             <nav className="navbar">
                 <div className="nav-left">
-                    <div className="nav-logo">Travel Agency</div>
+                    <div className="nav-logo">Турагенство</div>
                     <LinkCustom to="/tours">Туры</LinkCustom>
 
                     {user?.role === 'agent' && (
@@ -178,7 +178,7 @@ function App() {
                             {user.role === 'customer' && (
                                 <>
                                     <div className="nav-balance">
-                                        {user.balance} ₽
+                                        {user.balance} BYN
                                     </div>
                                     <LinkCustom to="/profile">Кабинет</LinkCustom>
                                 </>
@@ -195,7 +195,7 @@ function App() {
             </nav>
 
             <Routes>
-                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/" element={<Navigate to="/tours" replace />} />
                 <Route path="/tours" element={
                     <ToursPage
                         tours={tours}
@@ -210,19 +210,19 @@ function App() {
                 <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
 
                 <Route path="/profile" element={
-                    user ? <ProfilePage userToken={user.token} /> : <div style={{textAlign: 'center', marginTop: '2.5rem'}}>Пожалуйста, войдите в систему</div>
+                    user ? <ProfilePage userToken={user.token} /> : <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>Пожалуйста, войдите в систему</div>
                 } />
 
                 <Route path="/users" element={
                     user?.role === 'agent' ?
                         <AgentDashboard onAddBalance={handleAddBalance} /> :
-                        <div style={{textAlign: 'center', marginTop: '2.5rem'}}>Доступ запрещен</div>
+                        <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>Доступ запрещен</div>
                 } />
 
                 <Route path="/orders" element={
                     user?.role === 'agent' ?
                         <OrdersPage orders={orders} /> :
-                        <div style={{textAlign: 'center', marginTop: '2.5rem'}}>Доступ запрещен</div>
+                        <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>Доступ запрещен</div>
                 } />
             </Routes>
 

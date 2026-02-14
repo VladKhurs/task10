@@ -1,6 +1,7 @@
 package com.backend.demo;
 
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import lombok.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -77,7 +78,7 @@ public class AgencyServer {
     public Map<String, String> register(@RequestBody User user) {
         try {
             user.setRole("customer");
-            user.setBalance(0.0);
+            if (user.getBalance() == null) user.setBalance(0.0);
             userRepository.save(user);
             return Map.of("message", "Registered successfully");
         } catch (Exception e) {
@@ -111,13 +112,10 @@ public class AgencyServer {
     @GetMapping("/profile")
     public Map<String, Object> getProfile(@RequestHeader(value="Authorization", required=false) String token) {
         User user = checkAuth(token, null); 
-        
         List<Order> orders = orderRepository.findByUser(user);
-        
         Map<String, Object> response = new HashMap<>();
         response.put("user", user);
         response.put("orders", orders);
-        
         return response;
     }
 
@@ -138,6 +136,7 @@ public class AgencyServer {
                                           @PathVariable Long id, @RequestBody Tour req) {
         checkAuth(token, "agent");
         Tour tour = tourRepository.findById(id).orElseThrow();
+        
         if(req.getName() != null) tour.setName(req.getName());
         if(req.getDateStart() != null) tour.setDateStart(req.getDateStart());
         if(req.getDateEnd() != null) tour.setDateEnd(req.getDateEnd());
@@ -146,17 +145,23 @@ public class AgencyServer {
         if(req.getTour_type() != null) tour.setTour_type(req.getTour_type());
         if(req.getIsHot() != null) tour.setIsHot(req.getIsHot());
         if(req.getPrice() != null) tour.setPrice(req.getPrice());
-        if(req.getDiscountPrice() != null) tour.setDiscountPrice(req.getDiscountPrice());
+        if(req.getDiscountPrice() != null) {
+            tour.setDiscountPrice(req.getDiscountPrice());
+        }
         
         tourRepository.save(tour);
         return Map.of("message", "Updated");
     }
 
     @DeleteMapping("/tours/{id}")
+    @Transactional
     public Map<String, String> deleteTour(@RequestHeader(value="Authorization", required=false) String token,
                                           @PathVariable Long id) {
         checkAuth(token, "agent");
-        tourRepository.deleteById(id);
+        Tour tour = tourRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found"));
+        orderRepository.deleteByTour(tour);
+        tourRepository.delete(tour);
         return Map.of("message", "Deleted");
     }
 
@@ -245,11 +250,11 @@ public class AgencyServer {
 
                 List<Tour> tours = new ArrayList<>();
                 
-                tours.add(new Tour("Египет Все Включено", "2026-03-01", "2026-03-10", "Минск", "Хургада", "Отдых", true, 45000.0, 39000.0));
-                tours.add(new Tour("Шоппинг в Милане", "2026-04-10", "2026-04-15", "Минск", "Милан", "Шоппинг", false, 80000.0, null));
-                tours.add(new Tour("Экскурсия по Парижу", "2026-05-01", "2026-05-07", "Минск", "Париж", "Экскурсия", false, 120000.0, 100000.0));
-                tours.add(new Tour("Турция Анталья", "2026-06-15", "2026-06-25", "Минск", "Анталья", "Отдых", true, 60000.0, 55000.0));
-                
+                tours.add(new Tour("Египет Все Включено", "2026-03-01", "2026-03-10", "Минск", "Хургада", "Отдых", true, 3500.0, 2900.0));
+                tours.add(new Tour("Шоппинг в Милане", "2026-04-10", "2026-04-15", "Минск", "Милан", "Шоппинг", false, 5200.0, null));
+                tours.add(new Tour("Экскурсия по Парижу", "2026-05-01", "2026-05-07", "Минск", "Париж", "Экскурсия", false, 7800.0, 7200.0));
+                tours.add(new Tour("Турция Анталья", "2026-06-15", "2026-06-25", "Минск", "Анталья", "Отдых", true, 4600.0, 4100.0));
+
                 tourRepository.saveAll(tours);
                 
                 System.out.println("Users and Tours created. Server started on port 3000");
@@ -355,4 +360,5 @@ interface TourRepository extends JpaRepository<Tour, Long> {}
 
 interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUser(User user);
+    void deleteByTour(Tour tour);
 }

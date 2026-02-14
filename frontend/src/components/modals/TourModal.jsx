@@ -16,13 +16,17 @@ export default function TourModal({ isVisible, setIsVisible, onSubmit, initialDa
     useEffect(() => {
         if (isVisible) {
             if (initialData) {
+                // Заполняем форму данными при редактировании
                 Object.keys(initialData).forEach(key => {
                     setValue(key, initialData[key]);
                 });
             } else {
+                // Сбрасываем форму при создании нового тура
                 reset({ 
                     isHot: false, 
-                    tour_type: "" 
+                    tour_type: "",
+                    price: null,
+                    discountPrice: null 
                 });
             }
         }
@@ -70,8 +74,8 @@ export default function TourModal({ isVisible, setIsVisible, onSubmit, initialDa
                     </div>
 
                     <div className="input-row">
-                         <Input register={register} type="number" name="price" placeholder="Цена" options={{ required: true }} />
-                         <Input register={register} type="number" name="discountPrice" placeholder="Цена со скидкой" />
+                         <Input register={register} type="number" name="price" placeholder="Цена" options={{ required: true, valueAsNumber: true }} />
+                         <Input register={register} type="number" name="discountPrice" placeholder="Цена со скидкой" options={{ valueAsNumber: true }} />
                     </div>
 
                     <div className="checkbox-wrapper">

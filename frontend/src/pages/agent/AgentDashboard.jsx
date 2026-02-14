@@ -12,10 +12,10 @@ export default function AgentDashboard({ onAddBalance }) {
             const res = await api.get('/users', {
                 headers: { Authorization: token }
             });
-            
+
             const customersOnly = res.data.filter(u => u.role === 'customer');
             setUsers(customersOnly);
-            
+
         } catch (e) {
             console.error("Не удалось загрузить пользователей", e);
         }
@@ -34,14 +34,14 @@ export default function AgentDashboard({ onAddBalance }) {
         if (!amount || amount <= 0) return alert("Введите корректную сумму");
 
         await onAddBalance({ userId: user.id, amount: parseFloat(amount) });
-        
+
         setTopUpAmounts(prev => ({ ...prev, [user.id]: "" }));
         fetchUsers();
     };
 
     return (
-        <div className="container" style={{marginTop: '2rem'}}>
-            <div style={{backgroundColor: 'var(--white)', padding: '1.5rem', borderRadius: '8px', boxShadow: 'var(--shadow)'}}>
+        <div className="container" style={{ marginTop: '2rem' }}>
+            <div style={{ backgroundColor: 'var(--white)', padding: '1.5rem', borderRadius: '8px', boxShadow: 'var(--shadow)' }}>
                 <h2 className="page-title">Управление пользователями</h2>
                 <div className="table-wrapper">
                     <table className="data-table">
@@ -57,39 +57,39 @@ export default function AgentDashboard({ onAddBalance }) {
                         <tbody>
                             {users.map(user => (
                                 <tr key={user.id}>
-                                    <td style={{fontWeight: 'bold', color: 'var(--text-light)'}}>#{user.id}</td>
+                                    <td style={{ fontWeight: 'bold', color: 'var(--text-light)' }}>#{user.id}</td>
                                     <td>
-                                        <div style={{fontWeight: 600}}>{user.surname} {user.name} {user.patronymic}</div>
+                                        <div style={{ fontWeight: 600 }}>{user.surname} {user.name} {user.patronymic}</div>
                                     </td>
                                     <td>
                                         <div>{user.email}</div>
-                                        <div style={{fontSize: '0.75rem', color: 'var(--text-light)'}}>{user.phone || "Нет телефона"}</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>{user.phone || "Нет телефона"}</div>
                                     </td>
-                                    <td style={{fontSize: '1.125rem', fontWeight: 'bold', color: 'var(--theme)'}}>
-                                        {user.balance} ₽
+                                    <td style={{ fontSize: '1.125rem', fontWeight: 'bold', color: 'var(--theme)' }}>
+                                        {user.balance} BYN
                                     </td>
                                     <td>
-                                        <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                                            <input 
-                                                type="number" 
-                                                placeholder="Сумма" 
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <input
+                                                type="number"
+                                                placeholder="Сумма"
                                                 className="input-field"
-                                                style={{width: '100px', padding: '0.25rem 0.5rem'}}
+                                                style={{ width: '100px', padding: '0.25rem 0.5rem' }}
                                                 value={topUpAmounts[user.id] || ""}
                                                 onChange={(e) => {
-                                                    const value  = e.target.value
+                                                    const value = e.target.value;
                                                     if (value > 0) {
-                                                        handleAmountChange(user.id, value)
+                                                        handleAmountChange(user.id, value);
                                                     } else {
-                                                        handleAmountChange(user.id, 1)
+                                                        handleAmountChange(user.id, 1);
                                                     }
-                                                    
+
                                                 }}
                                             />
-                                            <Button 
+                                            <Button
                                                 onClick={() => handleTopUpClick(user)}
                                                 className="btn-success"
-                                                style={{padding: '0.25rem 0.75rem', fontSize: '0.75rem'}}
+                                                style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}
                                             >
                                                 Пополнить
                                             </Button>
@@ -99,7 +99,7 @@ export default function AgentDashboard({ onAddBalance }) {
                             ))}
                             {users.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" style={{padding: '1rem', textAlign: 'center', color: 'var(--text-light)'}}>Нет пользователей</td>
+                                    <td colSpan="5" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-light)' }}>Нет пользователей</td>
                                 </tr>
                             )}
                         </tbody>

@@ -13,8 +13,8 @@ export default function RegisterPage({ onRegister }) {
                 <form onSubmit={handleSubmit(onRegister)} className="form-group">
                     <Input register={register} name="email" placeholder="Email" options={{ required: true }} />
                     <Input register={register} name="password" type="password" placeholder="Пароль" options={{ required: true }} />
-                    <Input register={register} name="name" placeholder="Имя" />
                     <Input register={register} name="surname" placeholder="Фамилия" />
+                    <Input register={register} name="name" placeholder="Имя" />
                     <Input register={register} name="patronymic" placeholder="Отчество" />
                     <Input register={register} name="phone" placeholder="Телефон" />
                     <Button type="submit">Зарегистрироваться</Button>
