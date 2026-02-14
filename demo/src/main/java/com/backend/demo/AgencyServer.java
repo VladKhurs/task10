@@ -25,7 +25,6 @@ public class AgencyServer {
         SpringApplication.run(AgencyServer.class, args);
     }
 
-    // --- REPOSITORIES ---
     private final UserRepository userRepository;
     private final TourRepository tourRepository;
     private final OrderRepository orderRepository;
@@ -36,7 +35,6 @@ public class AgencyServer {
         this.orderRepository = o;
     }
 
-    // --- CORS CONFIG (Аналог app.use(cors())) ---
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -48,13 +46,11 @@ public class AgencyServer {
         return new CorsFilter(source);
     }
 
-    // --- AUTH HELPER (Аналог middleware checkRole и authMiddleware) ---
     private User checkAuth(String token, String requiredRole) {
         if (token == null || token.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No token");
         }
 
-        // Логика токена: "id-role"
         String[] parts = token.split("-");
         if (parts.length < 2) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token format");
@@ -76,8 +72,6 @@ public class AgencyServer {
         
         return user;
     }
-
-    // --- ENDPOINTS ---
 
     @PostMapping("/register")
     public Map<String, String> register(@RequestBody User user) {
@@ -109,17 +103,13 @@ public class AgencyServer {
         response.put("roleName", user.getRole());
         response.put("purchasedTourIds", purchasedTourIds);
         
-        // --- ДОБАВЛЕНО: Возвращаем имя и баланс ---
         response.put("name", user.getName());
         response.put("balance", user.getBalance());
-        // ------------------------------------------
-        
         return response;
     }
 
     @GetMapping("/profile")
     public Map<String, Object> getProfile(@RequestHeader(value="Authorization", required=false) String token) {
-        // null означает, что роль не важна, главное, чтобы пользователь был авторизован
         User user = checkAuth(token, null); 
         
         List<Order> orders = orderRepository.findByUser(user);
@@ -148,7 +138,6 @@ public class AgencyServer {
                                           @PathVariable Long id, @RequestBody Tour req) {
         checkAuth(token, "agent");
         Tour tour = tourRepository.findById(id).orElseThrow();
-        // Обновляем поля, если они пришли
         if(req.getName() != null) tour.setName(req.getName());
         if(req.getDateStart() != null) tour.setDateStart(req.getDateStart());
         if(req.getDateEnd() != null) tour.setDateEnd(req.getDateEnd());
@@ -206,24 +195,17 @@ public class AgencyServer {
         Double priceToPay = (tour.getDiscountPrice() != null && tour.getDiscountPrice() > 0) 
                             ? tour.getDiscountPrice() 
                             : tour.getPrice();
-
-        // --- ИЗМЕНЕНО: Проверка баланса с точным текстом ошибки ---
         if (user.getBalance() < priceToPay) {
-            // Текст ошибки "Не хватает средств" как вы просили
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Не хватает средств");
         }
 
-        // Списываем средства
         user.setBalance(user.getBalance() - priceToPay);
-        userRepository.save(user); // Сохраняем обновленный баланс в БД
-
-        // Создаем заказ
+        userRepository.save(user);
         Order order = new Order();
         order.setUser(user);
         order.setTour(tour);
         orderRepository.save(order);
 
-        // --- ИЗМЕНЕНО: Возвращаем новый баланс, чтобы обновить фронтенд ---
         return Map.of(
             "message", "Tour purchased", 
             "tourId", tour.getId(),
@@ -234,16 +216,13 @@ public class AgencyServer {
     @GetMapping("/users")
     public List<User> getAllUsers(@RequestHeader(value="Authorization", required=false) String token) {
         checkAuth(token, "agent");
-        // Возвращаем всех пользователей, чтобы агент мог управлять их балансом
         return userRepository.findAll();
     }
 
-    // --- DATA SEEDING (Аналог функции start()) ---
     @Bean
     public CommandLineRunner initData() {
         return args -> {
             if (userRepository.count() == 0) {
-                // Создаем Агента
                 User agent = new User();
                 agent.setEmail("agent@mail.com");
                 agent.setPassword("admin");
@@ -253,7 +232,6 @@ public class AgencyServer {
                 agent.setBalance(0.0);
                 userRepository.save(agent);
 
-                // Создаем Клиента
                 User customer = new User();
                 customer.setEmail("user@mail.com");
                 customer.setPassword("123");
@@ -265,7 +243,6 @@ public class AgencyServer {
                 customer.setBalance(50000.0);
                 userRepository.save(customer);
 
-                // Создаем Туры
                 List<Tour> tours = new ArrayList<>();
                 
                 tours.add(new Tour("Египет Все Включено", "2026-03-01", "2026-03-10", "Минск", "Хургада", "Отдых", true, 45000.0, 39000.0));
@@ -280,8 +257,6 @@ public class AgencyServer {
         };
     }
 }
-
-// --- MODELS (Entities) ---
 
 @Entity
 @Data
@@ -306,7 +281,6 @@ class User {
     
     private Double balance;
 
-    // Связь OneToMany с заказами. JsonIgnore, чтобы не было цикла при сериализации User -> Order -> User
     @OneToMany(mappedBy = "user")
     @com.fasterxml.jackson.annotation.JsonIgnore 
     private List<Order> orders;
@@ -343,7 +317,6 @@ class Tour {
     @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Order> orders;
 
-    // Конструктор для удобства создания
     public Tour(String n, String ds, String de, String o, String d, String tt, Boolean h, Double p, Double dp) {
         this.name=n; this.dateStart=ds; this.dateEnd=de; this.origin=o; 
         this.destination=d; this.tour_type=tt; this.isHot=h; this.price=p; this.discountPrice=dp;
@@ -353,7 +326,7 @@ class Tour {
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "orders") // "order" - зарезервированное слово в SQL, лучше переименовать таблицу
+@Table(name = "orders")
 class Order {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -365,21 +338,14 @@ class Order {
     @ManyToOne
     @JoinColumn(name = "tour_id")
     private Tour tour;
-
-    // --- ВАЖНО: Добавляем поле даты ---
-    // Используем String для простоты передачи в JSON
     @Column(name = "created_at")
     private String createdAt;
 
-    // Метод, который срабатывает ПЕРЕД сохранением в базу
     @PrePersist
     protected void onCreate() {
-        // Сохраняем текущую дату и время в формате ISO (например: 2026-02-14T17:30:00)
         this.createdAt = java.time.LocalDateTime.now().toString();
     }
 }
-
-// --- REPOSITORIES ---
 
 interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailAndPassword(String email, String password);

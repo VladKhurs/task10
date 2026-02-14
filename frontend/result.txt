@@ -37,7 +37,7 @@ export default defineConfig([
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ТЗ_JS</title>
+    <title>Система турагенство</title>
   </head>
   <body>
     <div id="root"></div>
@@ -143,6 +143,8 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ToursPage from "./pages/tours/ToursPage";
 import AgentDashboard from "./pages/agent/AgentDashboard";
+import OrdersPage from "./pages/orders/OrdersPage"; // <-- ИМПОРТ НОВОЙ СТРАНИЦЫ
+import ProfilePage from "./pages/profile/ProfilePage";
 import AlertModal from "./components/modals/ArertModal";
 
 function App() {
@@ -150,7 +152,7 @@ function App() {
     const [user, setUser] = useState(null);
     const [tours, setTours] = useState([]);
     const [orders, setOrders] = useState([]);
-    
+
     const [alertData, setAlertData] = useState({ isVisible: false, text: "" });
     const [tourModalData, setTourModalData] = useState({ isVisible: false, data: null });
 
@@ -206,7 +208,9 @@ function App() {
             const userData = {
                 token: res.data.token,
                 role: res.data.roleName,
-                purchasedTourIds: res.data.purchasedTourIds
+                purchasedTourIds: res.data.purchasedTourIds,
+                name: res.data.name,
+                balance: res.data.balance
             };
             setUser(userData);
             localStorage.setItem('user_data', JSON.stringify(userData));
@@ -224,16 +228,21 @@ function App() {
 
     const handleBuyTour = async (tourId) => {
         try {
-            await api.post('/buy', { tourId }, {
+            const res = await api.post('/buy', { tourId }, {
                 headers: { Authorization: user.token }
             });
             showAlert('Тур успешно куплен!');
-            
-            const updatedUser = { ...user, purchasedTourIds: [...user.purchasedTourIds, tourId] };
+
+            const updatedUser = {
+                ...user,
+                purchasedTourIds: [...user.purchasedTourIds, tourId],
+                balance: res.data.newBalance
+            };
             setUser(updatedUser);
             localStorage.setItem('user_data', JSON.stringify(updatedUser));
         } catch (e) {
-            showAlert(e.response?.data?.message || 'Ошибка покупки');
+            const errorMsg = e.response?.data?.message || e.response?.data || 'Ошибка покупки';
+            showAlert(errorMsg);
         }
     };
 
@@ -275,10 +284,10 @@ function App() {
 
     const handleAddBalance = async (data) => {
         try {
-            const res = await api.post('/balance', data, {
+            await api.post('/balance', data, {
                 headers: { Authorization: user.token }
             });
-            showAlert(`Баланс пополнен. Текущий баланс пользователя: ${res.data.balance}`);
+            showAlert(`Баланс пополнен`);
         } catch (e) {
             showAlert(e.response?.data?.message || 'Ошибка пополнения');
         }
@@ -290,13 +299,27 @@ function App() {
                 <div className="flex items-center">
                     <div className="text-white font-bold text-lg mr-6">Travel Agency</div>
                     <LinkCustom to="/">Туры</LinkCustom>
-                    {user?.role === 'agent' && <LinkCustom to="/orders">Управление</LinkCustom>}
+
+                    {/* --- ИЗМЕНЕНО: Ссылки для агента --- */}
+                    {user?.role === 'agent' && (
+                        <>
+                            <LinkCustom to="/users">Пользователи</LinkCustom>
+                            <LinkCustom to="/orders">Заказы</LinkCustom>
+                        </>
+                    )}
                 </div>
                 <div className="flex items-center gap-4">
                     {user ? (
                         <>
-                            <span className="text-white font-medium">{user.role === 'agent' ? 'Агент' : 'Клиент'}</span>
-                            <Button onClick={handleLogout} className="bg-accent text-theme hover:bg-accent-hover py-1">Выйти</Button>
+                            {user.role === 'customer' && (
+                                <>
+                                    <div className="text-white text-right leading-tight mr-2 hidden md:block">
+                                        <div className="text-accent text-sm font-bold">{user.balance} ₽</div>
+                                    </div>
+                                    <LinkCustom to="/profile">Кабинет</LinkCustom>
+                                </>
+                            )}
+                            <Button onClick={handleLogout} className="bg-accent text-theme hover:bg-accent-hover py-1 text-sm font-bold">Выйти</Button>
                         </>
                     ) : (
                         <>
@@ -309,9 +332,9 @@ function App() {
 
             <Routes>
                 <Route path="/" element={
-                    <ToursPage 
-                        tours={tours} 
-                        user={user} 
+                    <ToursPage
+                        tours={tours}
+                        user={user}
                         onBuy={handleBuyTour}
                         onDelete={handleDeleteTour}
                         onEdit={(tour) => setTourModalData({ isVisible: true, data: tour })}
@@ -320,20 +343,32 @@ function App() {
                 } />
                 <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
                 <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
+
+                <Route path="/profile" element={
+                    user ? <ProfilePage userToken={user.token} /> : <div className="text-center mt-10">Пожалуйста, войдите в систему</div>
+                } />
+
+                {/* --- НОВЫЕ РОУТЫ АГЕНТА --- */}
+                <Route path="/users" element={
+                    user?.role === 'agent' ?
+                        <AgentDashboard onAddBalance={handleAddBalance} /> :
+                        <div className="text-center mt-10">Доступ запрещен</div>
+                } />
+
                 <Route path="/orders" element={
-                    user?.role === 'agent' ? 
-                    <AgentDashboard orders={orders} onAddBalance={handleAddBalance} /> : 
-                    <div className="text-center mt-10">Доступ запрещен</div>
+                    user?.role === 'agent' ?
+                        <OrdersPage orders={orders} /> :
+                        <div className="text-center mt-10">Доступ запрещен</div>
                 } />
             </Routes>
 
-            <AlertModal 
-                isVisible={alertData.isVisible} 
-                setIsVisible={(v) => setAlertData(p => ({ ...p, isVisible: v }))} 
-                alertText={alertData.text} 
+            <AlertModal
+                isVisible={alertData.isVisible}
+                setIsVisible={(v) => setAlertData(p => ({ ...p, isVisible: v }))}
+                alertText={alertData.text}
             />
 
-            <TourModal 
+            <TourModal
                 isVisible={tourModalData.isVisible}
                 setIsVisible={(v) => setTourModalData(p => ({ ...p, isVisible: v }))}
                 initialData={tourModalData.data}
@@ -490,17 +525,29 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import X from '../ui/X';
 
+// Список доступных типов туров
+const TOUR_TYPES = [
+    "Отдых",
+    "Экскурсия",
+    "Шоппинг",
+];
+
 export default function TourModal({ isVisible, setIsVisible, onSubmit, initialData }) {
     const { register, handleSubmit, reset, setValue } = useForm();
 
     useEffect(() => {
         if (isVisible) {
             if (initialData) {
+                // Если редактирование — заполняем поля
                 Object.keys(initialData).forEach(key => {
                     setValue(key, initialData[key]);
                 });
             } else {
-                reset({ isHot: false });
+                // Если создание — сбрасываем форму
+                reset({ 
+                    isHot: false, 
+                    tour_type: "" // Сбрасываем селект в дефолтное состояние
+                });
             }
         }
     }, [isVisible, initialData, reset, setValue]);
@@ -512,19 +559,35 @@ export default function TourModal({ isVisible, setIsVisible, onSubmit, initialDa
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative max-h-[90vh] overflow-y-auto">
                 <X className="absolute top-2 right-2" onClick={() => setIsVisible(false)} />
                 <h3 className="text-xl font-bold mb-4">{initialData ? 'Редактировать тур' : 'Создать тур'}</h3>
+                
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
                     <Input register={register} name="name" placeholder="Название тура" options={{ required: true }} />
                     <Input register={register} name="origin" placeholder="Место отправления" options={{ required: true }} />
                     <Input register={register} name="destination" placeholder="Место назначения" options={{ required: true }} />
-                    <Input register={register} name="tour_type" placeholder="Тип тура (Отдых, Шоппинг...)" options={{ required: true }} />
+                    
+                    {/* --- ВЫПАДАЮЩИЙ СПИСОК ВМЕСТО INPUT --- */}
+                    <div>
+                        <select
+                            {...register("tour_type", { required: true })}
+                            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-theme bg-white text-gray-700"
+                            defaultValue=""
+                        >
+                            <option value="" disabled>Выберите тип тура</option>
+                            {TOUR_TYPES.map((type) => (
+                                <option key={type} value={type}>
+                                    {type}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                     
                     <div className="flex gap-2">
                         <div className="w-1/2">
-                            <label className="text-xs">Дата начала</label>
+                            <label className="text-xs text-gray-500 ml-1">Дата начала</label>
                             <Input register={register} type="date" name="dateStart" options={{ required: true }} />
                         </div>
                         <div className="w-1/2">
-                            <label className="text-xs">Дата конца</label>
+                            <label className="text-xs text-gray-500 ml-1">Дата конца</label>
                             <Input register={register} type="date" name="dateEnd" options={{ required: true }} />
                         </div>
                     </div>
@@ -534,12 +597,12 @@ export default function TourModal({ isVisible, setIsVisible, onSubmit, initialDa
                          <Input register={register} type="number" name="discountPrice" placeholder="Цена со скидкой" />
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <input type="checkbox" {...register('isHot')} id="isHot" />
-                        <label htmlFor="isHot">Горящий тур</label>
+                    <div className="flex items-center gap-2 mt-2">
+                        <input type="checkbox" {...register('isHot')} id="isHot" className="w-4 h-4 accent-theme" />
+                        <label htmlFor="isHot" className="select-none cursor-pointer">Горящий тур</label>
                     </div>
 
-                    <Button type="submit" className="mt-2">Сохранить</Button>
+                    <Button type="submit" className="mt-4">Сохранить</Button>
                 </form>
             </div>
         </div>
@@ -608,62 +671,113 @@ export default function X({ onClick, className = '' }) {
 }
 ---
 .\src\pages\agent\AgentDashboard.jsx
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import { formatDate } from '../../utils/formatters';
+import api from '../../api/axiosConfig';
 
-export default function AgentDashboard({ orders, onAddBalance }) {
-    const { register, handleSubmit, reset } = useForm();
+export default function AgentDashboard({ onAddBalance }) {
+    const [users, setUsers] = useState([]);
+    const [topUpAmounts, setTopUpAmounts] = useState({});
 
-    const onSubmitBalance = (data) => {
-        onAddBalance(data);
-        reset();
+    // Загрузка пользователей
+    const fetchUsers = async () => {
+        try {
+            const token = JSON.parse(localStorage.getItem('user_data'))?.token;
+            const res = await api.get('/users', {
+                headers: { Authorization: token }
+            });
+            
+            // --- ИЗМЕНЕНО: Фильтруем, оставляем только role === 'customer' ---
+            const customersOnly = res.data.filter(u => u.role === 'customer');
+            setUsers(customersOnly);
+            
+        } catch (e) {
+            console.error("Не удалось загрузить пользователей", e);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const handleAmountChange = (userId, value) => {
+        setTopUpAmounts(prev => ({ ...prev, [userId]: value }));
+    };
+
+    const handleTopUpClick = async (user) => {
+        const amount = topUpAmounts[user.id];
+        if (!amount || amount <= 0) return alert("Введите корректную сумму");
+
+        await onAddBalance({ userId: user.id, amount: parseFloat(amount) });
+        
+        setTopUpAmounts(prev => ({ ...prev, [user.id]: "" }));
+        fetchUsers(); // Обновляем баланс в таблице
     };
 
     return (
-        <div className="p-4 max-w-6xl mx-auto">
-            <div className="mb-10 bg-white p-6 rounded shadow">
-                <h2 className="text-xl font-bold mb-4 text-theme">Пополнить баланс пользователя</h2>
-                <form onSubmit={handleSubmit(onSubmitBalance)} className="flex gap-4 items-end">
-                    <div className="w-1/3">
-                        <label className="block text-sm mb-1">ID пользователя</label>
-                        <Input register={register} name="userId" placeholder="ID" options={{ required: true }} />
-                    </div>
-                    <div className="w-1/3">
-                        <label className="block text-sm mb-1">Сумма</label>
-                        <Input register={register} type="number" name="amount" placeholder="0.00" options={{ required: true }} />
-                    </div>
-                    <Button type="submit">Пополнить</Button>
-                </form>
-            </div>
-
-            <h2 className="text-2xl font-bold mb-4 text-theme">Все заказы</h2>
-            <div className="overflow-x-auto bg-white rounded shadow">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-100 uppercase text-gray-600">
-                        <tr>
-                            <th className="p-3">ID Заказа</th>
-                            <th className="p-3">Тур</th>
-                            <th className="p-3">Клиент (ID)</th>
-                            <th className="p-3">Email</th>
-                            <th className="p-3">Дата создания</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {orders.map(order => (
-                            <tr key={order.id} className="border-b hover:bg-gray-50">
-                                <td className="p-3">{order.id}</td>
-                                <td className="p-3 font-medium">{order.Tour?.name}</td>
-                                <td className="p-3">{order.User?.name} {order.User?.surname} ({order.UserId})</td>
-                                <td className="p-3">{order.User?.email}</td>
-                                <td className="p-3">{formatDate(order.createdAt)}</td>
+        <div className="p-4 max-w-7xl mx-auto space-y-10">
+            <div className="bg-white p-6 rounded shadow">
+                <h2 className="text-2xl font-bold mb-6 text-theme">Управление пользователями</h2>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm border-collapse">
+                        <thead className="bg-theme text-white uppercase">
+                            <tr>
+                                <th className="p-3 rounded-tl-lg">ID</th>
+                                <th className="p-3">ФИО</th>
+                                <th className="p-3">Email / Телефон</th>
+                                <th className="p-3">Текущий баланс</th>
+                                <th className="p-3 rounded-tr-lg">Пополнить</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {orders.length === 0 && <div className="p-4 text-center text-gray-500">Заказов пока нет</div>}
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {users.map(user => (
+                                <tr key={user.id} className="hover:bg-gray-50 transition">
+                                    <td className="p-3 font-bold text-gray-500">#{user.id}</td>
+                                    <td className="p-3">
+                                        <div className="font-semibold">{user.surname} {user.name} {user.patronymic}</div>
+                                    </td>
+                                    <td className="p-3">
+                                        <div>{user.email}</div>
+                                        <div className="text-xs text-gray-500">{user.phone || "Нет телефона"}</div>
+                                    </td>
+                                    <td className="p-3 text-lg font-bold text-theme">
+                                        {user.balance} ₽
+                                    </td>
+                                    <td className="p-3">
+                                        <div className="flex items-center gap-2">
+                                            <input 
+                                                type="number" 
+                                                placeholder="Сумма" 
+                                                className="border border-gray-300 rounded px-2 py-1 w-24 focus:outline-theme"
+                                                value={topUpAmounts[user.id] || ""}
+                                                onChange={(e) => {
+                                                    const value  = e.target.value
+                                                    if (value > 0) {
+                                                        handleAmountChange(user.id, value)
+                                                    } else {
+                                                        handleAmountChange(user.id, 1)
+                                                    }
+                                                    
+                                                }}
+                                            />
+                                            <Button 
+                                                onClick={() => handleTopUpClick(user)}
+                                                className="py-1 px-3 text-xs bg-green-600 hover:bg-green-700"
+                                            >
+                                                Пополнить
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                            {users.length === 0 && (
+                                <tr>
+                                    <td colSpan="5" className="p-4 text-center text-gray-500">Нет пользователей</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
@@ -730,6 +844,119 @@ export default function ClientsPage() {
   )
 }
 
+---
+.\src\pages\orders\OrdersPage.jsx
+import React from 'react';
+import { formatDateTime } from '../../utils/formatters'; // <-- ИЗМЕНЕН ИМПОРТ
+
+export default function OrdersPage({ orders }) {
+    console.log('orders', orders);
+    return (
+        <div className="p-4 max-w-7xl mx-auto">
+            <h2 className="text-2xl font-bold mb-6 text-theme">Все заказы агентства</h2>
+            <div className="overflow-x-auto bg-white rounded shadow">
+                <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-100 uppercase text-gray-600 border-b-2 border-gray-200">
+                        <tr>
+                            <th className="p-3">ID</th>
+                            <th className="p-3">Тур</th>
+                            <th className="p-3">Клиент (ФИО)</th>
+                            <th className="p-3">Телефон</th>
+                            <th className="p-3">Стоимость</th>
+                            <th className="p-3">Дата и Время</th> {/* <-- Заголовок */}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {orders.map(order => {
+                            const clientName = order.user 
+                                ? `${order.user.surname || ''} ${order.user.name || ''} ${order.user.patronymic || ''}`.trim() 
+                                : 'Удален';
+                            const clientPhone = order.user?.phone || '—';
+                            const price = order.tour?.discountPrice || order.tour?.price;
+
+                            return (
+                                <tr key={order.id} className="hover:bg-gray-50">
+                                    <td className="p-3 text-gray-500">#{order.id}</td>
+                                    <td className="p-3">
+                                        <span className="font-semibold block">{order.tour?.name}</span>
+                                        <span className="text-xs text-gray-500">{order.tour?.origin} &rarr; {order.tour?.destination}</span>
+                                    </td>
+                                    <td className="p-3 font-medium text-gray-800">
+                                        {clientName || `ID: ${order.user?.id}`}
+                                    </td>
+                                    <td className="p-3 whitespace-nowrap">
+                                        {clientPhone}
+                                    </td>
+                                    <td className="p-3 font-bold text-theme">
+                                        {price} ₽
+                                    </td>
+                                    {/* --- ИСПОЛЬЗУЕМ formatDateTime --- */}
+                                    <td className="p-3 text-gray-700 whitespace-nowrap">
+                                        {formatDateTime(order.createdAt)}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+                {orders.length === 0 && <div className="p-6 text-center text-gray-500">Заказов пока нет</div>}
+            </div>
+        </div>
+    );
+}
+---
+.\src\pages\profile\ProfilePage.jsx
+import React, { useEffect, useState } from 'react';
+import api from '../../api/axiosConfig';
+import { formatDate } from '../../utils/formatters';
+
+export default function ProfilePage({ userToken }) {
+    const [profileData, setProfileData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const res = await api.get('/profile', {
+                    headers: { Authorization: userToken }
+                });
+                setProfileData(res.data);
+            } catch (e) {
+                console.error("Ошибка загрузки профиля", e);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (userToken) {
+            fetchProfile();
+        }
+    }, [userToken]);
+
+    if (loading) return <div className="p-10 text-center">Загрузка...</div>;
+    if (!profileData) return <div className="p-10 text-center">Не удалось загрузить данные</div>;
+
+    const { user, orders } = profileData;
+
+    return (
+        <div className="max-w-4xl mx-auto mt-8 p-4">
+            <h1 className="text-3xl font-bold text-theme mb-6">Личный кабинет</h1>
+
+            {/* Карточка пользователя */}
+            <div className="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <h2 className="text-2xl font-semibold mb-2">{user.surname} {user.name} {user.patronymic}</h2>
+                    <p className="text-gray-600">Email: {user.email}</p>
+                    <p className="text-gray-600">Телефон: {user.phone || 'Не указан'}</p>
+                </div>
+                <div className="mt-4 md:mt-0 text-right bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <p className="text-sm text-gray-500 mb-1">Ваш баланс</p>
+                    <p className="text-3xl font-bold text-accent text-theme">{user.balance} ₽</p>
+                </div>
+            </div>
+        </div>
+    );
+}
 ---
 .\src\pages\services\ServicesPage.jsx
 import React from 'react'
@@ -826,4 +1053,16 @@ export const formatDate = (dateString) => {
     if (!dateString) return "—";
     return new Date(dateString).toLocaleDateString('ru-RU');
 };
+
+export const formatDateTime = (dateString) => {
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
 ---
