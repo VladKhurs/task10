@@ -1,4 +1,4 @@
-package com.backend.demo; // Убедитесь, что пакет соответствует вашей папке
+package com.backend.demo;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
 @SpringBootApplication
 @RestController
 @CrossOrigin(origins = "*")
-public class DemoApplication {
+public class AgencyServer {
 
     public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
+        SpringApplication.run(AgencyServer.class, args);
     }
 
     // --- REPOSITORIES ---
@@ -30,7 +30,7 @@ public class DemoApplication {
     private final TourRepository tourRepository;
     private final OrderRepository orderRepository;
 
-    public DemoApplication(UserRepository u, TourRepository t, OrderRepository o) {
+    public AgencyServer(UserRepository u, TourRepository t, OrderRepository o) {
         this.userRepository = u;
         this.tourRepository = t;
         this.orderRepository = o;
