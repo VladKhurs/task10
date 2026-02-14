@@ -46,47 +46,6 @@ export default function ProfilePage({ userToken }) {
                     <p className="text-3xl font-bold text-accent text-theme">{user.balance} ₽</p>
                 </div>
             </div>
-
-            {/* История заказов (Только для клиентов, или для агентов, если они тоже покупают) */}
-            <h2 className="text-xl font-bold text-theme mb-4">Мои путешествия</h2>
-            
-            {orders.length === 0 ? (
-                <div className="bg-white p-8 rounded shadow text-center text-gray-500">
-                    У вас пока нет купленных туров.
-                </div>
-            ) : (
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-                            <tr>
-                                <th className="p-4">Название тура</th>
-                                <th className="p-4">Направление</th>
-                                <th className="p-4">Даты</th>
-                                <th className="p-4 text-right">Стоимость</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {orders.map(order => (
-                                <tr key={order.id} className="hover:bg-gray-50">
-                                    <td className="p-4 font-medium text-theme">
-                                        {order.tour?.name}
-                                        {order.tour?.isHot && <span className="ml-2 text-red-500 text-xs font-bold">горящий</span>}
-                                    </td>
-                                    <td className="p-4 text-sm text-gray-600">
-                                        {order.tour?.origin} &rarr; {order.tour?.destination}
-                                    </td>
-                                    <td className="p-4 text-sm text-gray-600">
-                                        {formatDate(order.tour?.dateStart)} - {formatDate(order.tour?.dateEnd)}
-                                    </td>
-                                    <td className="p-4 text-right font-bold text-gray-700">
-                                        {(order.tour?.discountPrice || order.tour?.price)} ₽
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
         </div>
     );
 }
